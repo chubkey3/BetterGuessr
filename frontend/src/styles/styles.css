@@ -1,0 +1,51 @@
+.main-wrapper {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+.guess-map-wrapper {
+    position: absolute;
+    z-index: 3;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.overlay {
+  z-index: 6;
+  width: 100vw;
+  height: 100vh;
+  backdrop-filter: blur(2px);
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: absolute;
+  color: white;
+  font-size: 22px;
+  font-weight: 700;
+
+}
+
+button {
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: 30px;
+    background-color: #6cb928;
+    color: white;
+    font-style: italic;
+    cursor: pointer;
+    padding: 15px;
+    padding-left: 30px;
+    padding-right: 30px;
+    text-transform: uppercase;
+    border: none;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}

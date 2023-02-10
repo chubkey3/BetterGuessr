@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon index.js",
-    "client": "cd ../frontend && npm start",
-    "dev": "concurrently \"npm run dev\" \"npm run client\""
+    "client": "cd ../frontend && npm run dev",
+    "dev": "concurrently \"npm start\" \"npm run client\""
   },
   "keywords": [],
   "author": "",

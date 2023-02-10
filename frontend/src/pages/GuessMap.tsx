@@ -9,7 +9,14 @@ interface Props {
 const mapOptions = {
   fullscreenControl: false,
   mapTypeControl: false,
-  streetViewControl: false
+  streetViewControl: false,
+  minZoom: 1
+}
+
+const mapStyles = {
+  width: '25vw',
+  height: '25vw',
+  zIndex: '5'
 }
 
 function MyComponent({ center, setParentMarkers }: Props) {
@@ -46,8 +53,9 @@ function MyComponent({ center, setParentMarkers }: Props) {
   }
 
   return isLoaded ? (
-    <div>
+    <div className='guess-map-wrapper'>
       <GoogleMap
+        mapContainerStyle={mapStyles}
         center={{lat: 0, lng: 0}}
         zoom={2}
         onLoad={onLoad}

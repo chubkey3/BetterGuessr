@@ -6,6 +6,12 @@ interface Props {
   markers: google.maps.LatLngLiteral[]
 }
 
+const containerStyle = {
+  width: '50vw',
+  height: '50vh'
+
+};
+
 const mapOptions = {
     fullscreenControl: false,
     mapTypeControl: false,
@@ -68,6 +74,7 @@ function FullscreenMap({markers}: Props) {
   return isLoaded ? (
     <div className={'overlay'}>
       <GoogleMap
+        mapContainerStyle={containerStyle}
         center={markers[1]}
         zoom={2}
         onLoad={onLoad}
