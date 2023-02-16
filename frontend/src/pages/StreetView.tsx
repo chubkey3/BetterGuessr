@@ -25,16 +25,19 @@ function MyComponent({ center }: Props) {
     minZoom: 2,
     streetViewControl: false,
     position: location,
-  };
+    zoomControl: false
+  
+};
 
   const StreetViewOptions = {
     fullscreenControl: false,
     addressControl: false,
-    disableDefaultUI: false,
+    disableDefaultUI: true,
     showRoadLabels: false,
     enableCloseButton: false,
     visible: true,
     position: location,
+    zoomControl: false,
   };
 
   const { isLoaded } = useJsApiLoader({

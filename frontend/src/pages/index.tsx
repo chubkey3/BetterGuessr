@@ -8,13 +8,16 @@ import Data from "./data.json";
 import StreetView from "./StreetView";
 import Test from "./GuessMap";
 import FullscreenMap from "./FullscreenMap";
+import { io } from 'socket.io-client'
+
+const socket = io('http://localhost:3002')
 
 export default function Home() {
   const [center, setCenter] = useState(
     Data[Math.floor(Math.random() * Data.length)]
   );
 
-  const [markers, setMarkers] = useState([]);
+  const [markers, setMarkers] = useState([])
 
   return (
     <>

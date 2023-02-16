@@ -21,6 +21,19 @@ const rooms = {
 
 //replace all rooms[guessData.room] with room
 
+function parseData(data){
+    try {
+        var o = JSON.parse(data)
+
+        if (o && typeof o == Object){
+            return o
+        }
+    }
+    catch(e){}
+
+    return data
+}
+
 const activeUsers = {}
 
 /*
@@ -84,7 +97,7 @@ io.on("connection", (socket) => {
     activeUsers[socket.id] = 'abc' //req.room
 
     socket.on("join", (r) => {
-        const req = JSON.parse(r)
+        const req = parseData(r)
 
         if (!(req.room in rooms)){
             socket.emit('room_not_found', `No Room Exists with the ID: ${req.room}`)   
@@ -99,7 +112,8 @@ io.on("connection", (socket) => {
     })
 
     socket.on("switch_teams", (r) => {
-        const req = JSON.parse(r)
+        //const req = JSON.parse(r)
+        const req = parseData(r)
 
         if (!('user' in req)){
             socket.emit('error', 'Supply a Username')
@@ -108,11 +122,28 @@ io.on("connection", (socket) => {
         //DANGEROUS
 
         //check team automatically
-        if (rooms[req.room].team1_users.includes(req.user)){                        
-            rooms[req.room].team1_users.filter((x) => {x !== req.user})
+
+        var temp = []
+        if (rooms[req.room].team1_users.includes(req.user)){           
+            for (var i = 0; i<rooms[req.room].team1_users.length; i++){
+                if (rooms[req.room].team1_users[i] === req.user){
+                    continue
+                }
+                temp.push(rooms[req.room].team1_users[i])
+            }            
+
+            rooms[req.room].team1_users = temp;
             rooms[req.room].team2_users.push(req.user)
+
         } else {
-            rooms[req.room].team2_users.filter((x) => {x !== req.user})
+            for (var i = 0; i<rooms[req.room].team2_users.length; i++){
+                if (rooms[req.room].team2_users[i] === req.user){
+                    continue
+                }
+                temp.push(rooms[req.room].team2_users[i])
+            }
+
+            rooms[req.room].team2_users = temp;
             rooms[req.room].team1_users.push(req.user)
         }
 
@@ -120,20 +151,21 @@ io.on("connection", (socket) => {
     })
 
     socket.on("start", (r) => {
-        const data = JSON.parse(r)
-        if (data.room in rooms){
-            rooms[data.room].started = true;
-            io.to(data.room).emit('new_round', getRandomLocation())
+        const req = parseData(r)
+
+        if (req.room in rooms){
+            rooms[req.room].started = true;
+            io.to(req.room).emit('new_round', getRandomLocation())
         } else {
-            socket.emit('room_not_found', `No Room Exists with the ID: ${data.room}`)
+            socket.emit('room_not_found', `No Room Exists with the ID: ${req.room}`)
         }
     })
 
-    socket.on("guess", (data) => { 
+    socket.on("guess", (r) => { 
         //guess is LatLng object
-        const guessData = JSON.parse(data)
+        const req = parseData(r)
         
-        if (rooms[guessData.room].started){
+        if (rooms[req.room].started){
 
             //manage countdown
             if (rooms[guessData.room].team1_users.includes(guessData.user)){
@@ -173,7 +205,7 @@ io.on("connection", (socket) => {
         } else {
             socket.emit('game_not_started')
         }
-        
+         
         
     })
 

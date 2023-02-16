@@ -13,10 +13,21 @@ const mapOptions = {
   minZoom: 1
 }
 
+/*
+const mapStyles = {
+  width: '20vw',
+  height: '10vw',
+  zIndex: '5',
+  borderRadius: '5px',
+  opacity: 0.5
+}
+*/
+
 const mapStyles = {
   width: '25vw',
   height: '25vw',
-  zIndex: '5'
+  zIndex: '5',
+  borderRadius: '5px'
 }
 
 function MyComponent({ center, setParentMarkers }: Props) {
@@ -63,7 +74,7 @@ function MyComponent({ center, setParentMarkers }: Props) {
         onClick={onMapClick}
         options={mapOptions}
         ref={mapRef}
-        
+        mapContainerClassName={'guess-map'}
       >
       </GoogleMap>
       <button>{(markers.length === 0) ? 'Place your pin to guess' : 'Guess'}</button>

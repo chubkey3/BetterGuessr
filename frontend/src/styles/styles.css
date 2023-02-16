@@ -16,6 +16,13 @@
     align-items: center;
 }
 
+/*
+.guess-map:hover {
+  width: 30vw;
+  height: 30vw;
+  transition: all 0.5s ease-out;
+}
+*/
 .overlay {
   z-index: 6;
   width: 100vw;
