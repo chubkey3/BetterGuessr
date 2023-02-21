@@ -1,6 +1,8 @@
 const express = require('express')
 const crypto = require('crypto')
 const {Server} = require('socket.io')
+const mongoose = require('mongoose')
+require('dotenv').config()
 
 const data = require('./data.json')
 
@@ -240,7 +242,10 @@ io.on("connection", (socket) => {
     })
     //io.to('room1').emit('you are in room 1')
 })
- 
+
+mongoose.connect(process.env.MONGO_URL)
+    .then(() => console.log('Connected to Database!'))
+    .catch(() => console.log('Could not Connected to Database!'))
 
 
 app.get('/', (req, res) => {
