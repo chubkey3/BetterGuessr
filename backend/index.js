@@ -247,18 +247,12 @@ io.on("connection", (socket) => {
     //io.to('room1').emit('you are in room 1')
 })
 
-<<<<<<< HEAD
 //connect to database
 /*
 mongoose.connect(process.env.MONGO_URL)
     .then(() => console.log('Connected to Database!'))
     .catch(() => console.log('Error Connecting to Database!'))
 */
-=======
-mongoose.connect(process.env.MONGO_URL)
-    .then(() => console.log('Connected to Database!'))
-    .catch(() => console.log('Could not Connected to Database!'))
->>>>>>> c77f83032e4f8338e2fb0078be3d88c2d1442529
 
 
 app.get('/', (req, res) => {
