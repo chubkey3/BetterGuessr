@@ -11,7 +11,7 @@ const Room = () => {
         console.log(id)
     }, [id])
 
-    return id ? <div>Hi</div>
+    return id ? <div>{id}</div>
         : <div className="w-full h-full"></div>
 }
 
