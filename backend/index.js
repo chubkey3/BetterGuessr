@@ -1,6 +1,8 @@
 const express = require('express')
 const crypto = require('crypto')
 const {Server} = require('socket.io')
+const mongoose = require('mongoose')
+require('dotenv').config()
 
 const data = require('./data.json')
 
@@ -102,9 +104,8 @@ io.on("connection", (socket) => {
         if (!(req.room in rooms)){
             socket.emit('room_not_found', `No Room Exists with the ID: ${req.room}`)   
         } else {
-            socket.join(req.room)
-            
             if (!(rooms[req.room].team1_users.includes(req.user))){
+                socket.join(req.room)
                 rooms[req.room].team1_users.push(req.user)
                 io.to(req.room).emit('room', {team1: rooms[req.room].team1_users, team2: rooms[req.room].team2_users})
             }   
@@ -154,8 +155,13 @@ io.on("connection", (socket) => {
         const req = parseData(r)
 
         if (req.room in rooms){
-            rooms[req.room].started = true;
-            io.to(req.room).emit('new_round', getRandomLocation())
+            if (rooms[req.room].started){
+                room[req.room].started = true;
+                io.to(req.room).emit('new_round', getRandomLocation())
+            } else {
+                socket.emit('room_started')
+            }
+            
         } else {
             socket.emit('room_not_found', `No Room Exists with the ID: ${req.room}`)
         }
@@ -203,7 +209,7 @@ io.on("connection", (socket) => {
                 
             }
         } else {
-            socket.emit('game_not_started')
+            socket.emit('room_not_started')
         }
          
         
@@ -212,7 +218,7 @@ io.on("connection", (socket) => {
     socket.on("new_room", () => {
       //blank template in db  
     })
-    //socket.emit('message', 'hi')
+    
     console.log(socket.id)
     io.emit()
 
@@ -240,7 +246,13 @@ io.on("connection", (socket) => {
     })
     //io.to('room1').emit('you are in room 1')
 })
- 
+
+//connect to database
+/*
+mongoose.connect(process.env.MONGO_URL)
+    .then(() => console.log('Connected to Database!'))
+    .catch(() => console.log('Error Connecting to Database!'))
+*/
 
 
 app.get('/', (req, res) => {
