@@ -5,19 +5,33 @@ const mongoose = require('mongoose')
 require('dotenv').config()
 
 const data = require('./data.json')
+const compression = require('compression')
 
 const app = express();
 
 const server = require('http').createServer(app);
 
-const players = {
-    "1": "Jack Hoff",
-    "2": "Ben Dover"
-}
 
 const rooms = {
     "abc": {team1_guesses: [], team2_guesses: [], team1_users: [], team2_users: [], guessed: 0, team1_health: 25000, team2_health: 25000, started: false}
 }
+
+const rad = (x) => {
+    return x * Math.PI / 180;
+  };
+
+var getDistance = (p1, p2) => {
+    var R = 6378137; // Earth’s mean radius in meter
+    var dLat = rad(p2.lat - p1.lat);
+    var dLong = rad(p2.lng - p1.lng);
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(rad(p1.lat)) * Math.cos(rad(p2.lat)) *
+        Math.sin(dLong / 2) * Math.sin(dLong / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    var d = R * c;    
+    return d
+};
+
 
 //in the future make team1_guesses/team2_guesses an array of objects so users can be associated to guesses
 
@@ -38,29 +52,36 @@ function parseData(data){
 
 const activeUsers = {}
 
-/*
-user object
-
-id
-displayName
-socket_id
-
-
-*/
 
 const getRandomLocation = () => {
     return data[Math.floor(Math.random()*data.length)]
 }
-/*
-started: boolean,
-users: guessed: boolean
 
-*/
+const roundEnd = (room) => {
+    //subtract health
+
+
+    if (rooms[room].team1_health <= 0){
+        io.to(room).emit('win', {team: 'team2', users: rooms[room].team2_users})
+        rooms[room].started = false;
+
+    } else if (rooms[room].team2_health <= 0){
+        io.to(room).emit('win', {team: 'team1', users: rooms[room].team1_users})
+        rooms[room].started = false;
+    
+    } else {
+        io.to(room).emit('round_over', {team1_guesses: rooms[room].team1_guesses, team2_guesses: rooms[room].team2_guesses, team1_health: rooms[room].team1_health, team2_health: rooms[room].team2_health, team1_distance: 1, team2_distance: 2})
+        setTimeout(() => {io.to(room).emit('new_round', getRandomLocation())}, 3000)
+        
+    }
+
+    rooms[room].guessed = 0;
+    rooms[room].team1_guesses = [];
+    rooms[room].team2_guesses = [];
+        
+}
 
 const io = new Server(server);
-/*
-socket stuff
-*/
 
 
 io.on("connection", (socket) => {
@@ -121,9 +142,6 @@ io.on("connection", (socket) => {
             socket.emit('error', 'Supply a Username')
         }
 
-        //DANGEROUS
-
-        //check team automatically
 
         var temp = []
         if (rooms[req.room].team1_users.includes(req.user)){           
@@ -163,60 +181,36 @@ io.on("connection", (socket) => {
         }
     })
 
-    socket.on("guess", (r) => { 
-        //guess is LatLng object
+    socket.on("guess", (r) => {         
         const req = parseData(r)
         
-        if (rooms[req.room].started){
-
-            //manage countdown
+        if (rooms[req.room].started){            
             if (rooms[guessData.room].team1_users.includes(guessData.user)){
-                rooms[guessData.room].team1_guesses.push(guessData.guess)
+                rooms[guessData.room].team1_guesses.push({lat: guessData.lat, lng: guessData.lng})
             } else {
-                rooms[guessData.room.team2_guesses.push(guessData.guess)]
+                rooms[guessData.room.team2_guesses.push({lat: guessData.lat, lng: guessData.lng})]
             }
 
-            io.to(guessData.room).emit('guess', {guess: guessData.guess, team: 1, user: 'cumstain'})
+            io.to(guessData.room).emit('guess', {lat: guessData.lat, lng: guessData.lng, user: guessData.user})
 
             rooms[guessData.room].guessed = rooms[guessData.room].guessed + 1
-            
-            //parseGuesses -> distance / resulting health
 
-            //fix below so timer instead of waiting for all users
-
-            if (rooms[guessData.room].guessed === (rooms[guessData.room].team1_users.length + rooms[guessData.room].team2_users.length)){
-                if (rooms[guessData.room].team1_health <= 0){
-                    io.to(guessData.room).emit('win', {team: 'team2', users: rooms[guessData.room].team2_users})
-                    rooms[guessData.room].started = false;
-
-                } else if (rooms[guessData.room].team2_health <= 0){
-                    io.to(guessData.room).emit('win', {team: 'team1', users: rooms[guessData.room].team1_users})
-                    rooms[guessData.room].started = false;
-                
-                } else {
-                    io.to(guessData.room).emit('round_over', {team1_guesses: rooms[guessData.room].team1_guesses, team2_guesses: rooms[guessData.room].team2_guesses, team1_health: rooms[guessData.room].team1_health, team2_health: rooms[guessData.room].team2_health, team1_distance: 1, team2_distance: 2})
-                    setTimeout(() => {io.to(guessData.room).emit('new_round', getRandomLocation())}, 3000)
-                    
-                }
-
-                rooms[guessData.room].guessed = 0;
-                rooms[guessData.room].team1_guesses = [];
-                rooms[guessData.room].team2_guesses = [];
-                
+            if (rooms[guessData.room].guessed === 1){
+                setTimeout(() => roundEnd(guessData.room), 1000*rooms[guessData.room].countdown_time)
             }
+
+            else if (rooms[guessData.room].guessed === (rooms[guessData.room].team1_users.length + rooms[guessData.room].team2_users.length)){
+                roundEnd(guessData.room)
+            }                                    
+            
         } else {
             socket.emit('game_not_started')
-        }
-         
-        
+        }        
     })
 
     socket.on("new_room", () => {
-      //blank template in db  
+      
     })
-    //socket.emit('message', 'hi')
-    console.log(socket.id)
-    io.emit()
 
 
     socket.on("disconnect", () => {
@@ -247,6 +241,9 @@ mongoose.connect(process.env.MONGO_URL)
     .then(() => console.log('Connected to Database!'))
     .catch(() => console.log('Could not Connected to Database!'))
 
+//middleware
+app.use(compression())
+app.use(express.json())
 
 app.get('/', (req, res) => {
     res.send('Betterguessr backend service.')
@@ -255,6 +252,7 @@ app.get('/', (req, res) => {
 app.get('/join', (req, res) => {
     res.send(crypto.randomUUID())
 })
+
 
 app.listen(3001, () => {
     console.log('Server running on port 3001')
