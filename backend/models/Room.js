@@ -1,5 +1,5 @@
-import Guess from '../schemas/Guess'
-import {UserSchema} from './User.js'
+const Guess = require('../schemas/Guess')
+const UserSchema = require('../schemas/User')
 
 const mongoose = require('mongoose')
 
@@ -37,4 +37,4 @@ const RoomSchema = mongoose.Schema({
 
 })
 
-export default mongoose.model('Rooms', RoomSchema)
+module.exports = mongoose.model('Rooms', RoomSchema)

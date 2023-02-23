@@ -6,6 +6,7 @@ require('dotenv').config()
 
 const data = require('./data.json')
 const compression = require('compression')
+const Room = require('./models/Room')
 
 const app = express();
 
@@ -244,11 +245,12 @@ io.on("connection", (socket) => {
 })
 
 //connect to database
-/*
-mongoose.connect(process.env.MONGO_URL)
+
+mongoose.connect(process.env.MONGO_URL, {dbName: 'betterguessr'})
     .then(() => console.log('Connected to Database!'))
     .catch(() => console.log('Error Connecting to Database!'))
-*/
+
+//new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000}).save()
 
 //middleware
 app.use(compression())

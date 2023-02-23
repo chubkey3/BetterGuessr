@@ -14,4 +14,4 @@ const Guess = mongoose.Schema({
 
 })
 
-export default Guess
+module.exports = Guess
