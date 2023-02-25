@@ -51,7 +51,7 @@ function parseData(data){
     return data
 }
 
-const activeUsers = {}
+const activeUsers = {} //convert to db?
 
 
 const getRandomLocation = () => {
@@ -80,6 +80,34 @@ const roundEnd = (room) => {
     rooms[room].team1_guesses = [];
     rooms[room].team2_guesses = [];
         
+}
+
+const calculateHealth = () => {
+    const team1_guess = 99999999999
+    const team2_guess = 99999999999
+    const team1_guesses = rooms[room].team1_guesses
+    const team2_guesses = rooms[room].team2_guesses
+
+    for (let i = 0; i<team1_guesses.length; i++){
+        distance = getDistance(team1_guesses[i].lat, team1_guesses[i].lng)
+        if (distance < team1_guess){
+            team1_guess = distance
+        }
+    }
+
+    for (let i = 0; i<team2_guesses.length; i++){
+        distance = getDistance(team2_guesses[i].lat, team2_guesses[i].lng)
+        if (distance < team2_guess){
+            team2_guess = distance
+        }
+    }
+
+    if (team1_guess < team2_guess){
+        team2_guess -= 1
+    } else if (team2_guess < team1_guess){
+        team1_guess -= 1
+    }
+    
 }
 
 const io = new Server(server);
@@ -199,6 +227,8 @@ io.on("connection", (socket) => {
             io.to(guessData.room).emit('guess', {lat: guessData.lat, lng: guessData.lng, user: guessData.user})
 
             rooms[guessData.room].guessed = rooms[guessData.room].guessed + 1
+
+            calculateHealth()
 
             if (rooms[guessData.room].guessed === 1){
                 setTimeout(() => roundEnd(guessData.room), 1000*rooms[guessData.room].countdown_time)
