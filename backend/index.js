@@ -2,16 +2,16 @@ const express = require('express')
 const crypto = require('crypto')
 const {Server} = require('socket.io')
 const mongoose = require('mongoose')
+const compression = require('compression')
+
 require('dotenv').config()
 
 const data = require('./data.json')
-const compression = require('compression')
 const Room = require('./models/Room')
 
 const app = express();
 
 const server = require('http').createServer(app);
-
 
 const rooms = {
     "abc": {team1_guesses: [], team2_guesses: [], team1_users: [], team2_users: [], guessed: 0, team1_health: 25000, team2_health: 25000, started: false}
@@ -72,7 +72,12 @@ const roundEnd = (room) => {
     
     } else {
         io.to(room).emit('round_over', {team1_guesses: rooms[room].team1_guesses, team2_guesses: rooms[room].team2_guesses, team1_health: rooms[room].team1_health, team2_health: rooms[room].team2_health, team1_distance: 1, team2_distance: 2})
-        setTimeout(() => {io.to(room).emit('new_round', getRandomLocation())}, 3000)
+        setTimeout(() => {
+            let location = getRandomLocation()
+            io.to(room).emit('new_round', location)
+            rooms[room].location = location
+        
+        }, 3000)
         
     }
 
@@ -82,30 +87,38 @@ const roundEnd = (room) => {
         
 }
 
-const calculateHealth = () => {
+const calculatePoints = (distance) => {
+    if (distance > Math.pow(10, 7)){
+        return 0
+    }
+
+    return (1/(2*Math.pow(10, 10))*(distance - Math.pow(10, 7))^2)
+}
+
+const calculateHealth = (room) => {
     const team1_guess = 99999999999
     const team2_guess = 99999999999
     const team1_guesses = rooms[room].team1_guesses
     const team2_guesses = rooms[room].team2_guesses
 
     for (let i = 0; i<team1_guesses.length; i++){
-        distance = getDistance(team1_guesses[i].lat, team1_guesses[i].lng)
+        distance = getDistance(team1_guesses[i], rooms[room].location)
         if (distance < team1_guess){
             team1_guess = distance
         }
     }
 
     for (let i = 0; i<team2_guesses.length; i++){
-        distance = getDistance(team2_guesses[i].lat, team2_guesses[i].lng)
+        distance = getDistance(team2_guesses[i], rooms[room].location)
         if (distance < team2_guess){
             team2_guess = distance
         }
     }
 
     if (team1_guess < team2_guess){
-        team2_guess -= 1
+        team2_guess -= calculatePoints(team1_guess) - calculatePoints(team2_guess)
     } else if (team2_guess < team1_guess){
-        team1_guess -= 1
+        team1_guess -= calculatePoints(team2_guess) - calculatePoints(team1_guess)
     }
     
 }
@@ -204,7 +217,10 @@ io.on("connection", (socket) => {
         if (req.room in rooms){
             if (rooms[req.room].started){
                 room[req.room].started = true;
-                io.to(req.room).emit('new_round', getRandomLocation())
+                
+                let location = getRandomLocation()
+                io.to(req.room).emit('new_round', location)
+                rooms[req.room].location = location
             } else {
                 socket.emit('room_started')
             }
@@ -228,7 +244,7 @@ io.on("connection", (socket) => {
 
             rooms[guessData.room].guessed = rooms[guessData.room].guessed + 1
 
-            calculateHealth()
+            calculateHealth(guessData.room)
 
             if (rooms[guessData.room].guessed === 1){
                 setTimeout(() => roundEnd(guessData.room), 1000*rooms[guessData.room].countdown_time)
@@ -276,11 +292,13 @@ io.on("connection", (socket) => {
 
 //connect to database
 
+/*
 mongoose.connect(process.env.MONGO_URL, {dbName: 'betterguessr'})
     .then(() => console.log('Connected to Database!'))
     .catch(() => console.log('Error Connecting to Database!'))
+*/
 
-//new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000}).save()
+//new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000, location: {lat: 0, lng: 0}}).save()
 
 //middleware
 app.use(compression())
@@ -293,7 +311,6 @@ app.get('/', (req, res) => {
 app.get('/join', (req, res) => {
     res.send(crypto.randomUUID())
 })
-
 
 app.listen(3001, () => {
     console.log('Server running on port 3001')

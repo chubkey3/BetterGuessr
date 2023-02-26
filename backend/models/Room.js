@@ -1,3 +1,4 @@
+const { Decimal128 } = require('mongoose')
 const Guess = require('../schemas/Guess')
 const UserSchema = require('../schemas/User')
 
@@ -33,6 +34,16 @@ const RoomSchema = mongoose.Schema({
     },
     team2_health: {
         type: Number
+    },
+    location: {
+        lat: {
+            type: Decimal128,
+            default: 0
+        },
+        lng: {
+            type: Decimal128,
+            default: 0
+        }
     }
 
 })
