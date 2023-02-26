@@ -9,7 +9,7 @@ const UserSchema = mongoose.Schema({
         default: '../assets/default_pfp.png'
     },
     rooms: {
-        type: [String]//is this ok?
+        type: [String]//is this ok? probably...
     },
     id: {
         type: String

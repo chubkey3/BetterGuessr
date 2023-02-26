@@ -123,92 +123,77 @@ const calculateHealth = (room) => {
     
 }
 
-const io = new Server(server);
+const io = new Server(server, { cors: {
+    origin: '*'
+}});
 
+console.log(activeUsers)
 
 io.on("connection", (socket) => {
-    
-
-    //testing
-
-    /* include params later
-    join - joins an existing party and returned who is in the room
-    start - start game and send first location
-    guess - guess for your team  
-
-
-    */
-
-    /*
-    user object
-
-
-
-    */
-
-    //better guess detection (use array of users that have guessed)
-
-    socket.join('abc')
-
-    
-
-    rooms["abc"].team1_users.push("cumstain")    
-    
-    io.to("abc").emit('room', {team1: rooms["abc"].team1_users, team2: rooms["abc"].team2_users})
-
-    
-    /*MOVE TO JOIN*/
-
-    activeUsers[socket.id] = 'abc' //req.room
 
     socket.on("join", (r) => {
         const req = parseData(r)
 
-        if (!(req.room in rooms)){
-            socket.emit('room_not_found', `No Room Exists with the ID: ${req.room}`)   
-        } else {
+        if (!req || !req.room || !req.user){
+            socket.emit('invalid_payload')
+        }
+        
+        else if (!(req.room in rooms)){
+            socket.emit('room_not_found')   
+        } 
+        
+        else {
             if (!(rooms[req.room].team1_users.includes(req.user))){
                 socket.join(req.room)
+                activeUsers[socket.id] = {room: req.room, user: req.user}
                 rooms[req.room].team1_users.push(req.user)
                 io.to(req.room).emit('room', {team1: rooms[req.room].team1_users, team2: rooms[req.room].team2_users})
             }   
         }
+
+        console.log(activeUsers)
+
     })
 
     socket.on("switch_teams", (r) => {
-        //const req = JSON.parse(r)
         const req = parseData(r)
 
-        if (!('user' in req)){
-            socket.emit('error', 'Supply a Username')
+        if (!req || !req.room || !req.user){
+            socket.emit('invalid_payload')
         }
 
+        else {
+            
+            var temp = []
+        
+            if (rooms[req.room].team1_users.includes(req.user)){           
+                for (var i = 0; i<rooms[req.room].team1_users.length; i++){
+                    if (rooms[req.room].team1_users[i] === req.user){
+                        continue
+                    }
+                    temp.push(rooms[req.room].team1_users[i])
+                }            
 
-        var temp = []
-        if (rooms[req.room].team1_users.includes(req.user)){           
-            for (var i = 0; i<rooms[req.room].team1_users.length; i++){
-                if (rooms[req.room].team1_users[i] === req.user){
-                    continue
+                rooms[req.room].team1_users = temp;
+                rooms[req.room].team2_users.push(req.user)
+
+            } else {
+                for (var i = 0; i<rooms[req.room].team2_users.length; i++){
+                    if (rooms[req.room].team2_users[i] === req.user){
+                        continue
+                    }
+                    temp.push(rooms[req.room].team2_users[i])
                 }
-                temp.push(rooms[req.room].team1_users[i])
-            }            
 
-            rooms[req.room].team1_users = temp;
-            rooms[req.room].team2_users.push(req.user)
-
-        } else {
-            for (var i = 0; i<rooms[req.room].team2_users.length; i++){
-                if (rooms[req.room].team2_users[i] === req.user){
-                    continue
-                }
-                temp.push(rooms[req.room].team2_users[i])
+                rooms[req.room].team2_users = temp;
+                rooms[req.room].team1_users.push(req.user)
             }
 
-            rooms[req.room].team2_users = temp;
-            rooms[req.room].team1_users.push(req.user)
+            io.to(req.room).emit('room', {team1: rooms[req.room].team1_users, team2: rooms[req.room].team2_users})
+
         }
 
-        io.to(req.room).emit('room', {team1: rooms[req.room].team1_users, team2: rooms[req.room].team2_users})
+        
     })
 
     socket.on("start", (r) => {
@@ -267,27 +252,37 @@ io.on("connection", (socket) => {
 
 
     socket.on("disconnect", () => {
-        const room = activeUsers[socket.id]
 
-        /*
-        for (int i = 0; i<rooms[room].team1_users.length; i++){
-            if (rooms[room].team1_users[i].socket_id === socket.id){
-                delete rooms[room].team1_users[i]
-                break;
+        if (socket.id in activeUsers){
+
+            const room = activeUsers[socket.id].room
+            const user = activeUsers[socket.id].user
+
+            let temp = []
+
+            for (let i = 0; i<rooms[room].team1_users.length; i++){
+                if (rooms[room].team1_users[i] !== user){
+                    temp.push(rooms[room].team1_users[i])
+                }
             }
-        }
 
-        for (int i = 0; i<rooms[room].team2_users.length; i++){
-            if (rooms[room].team2_users[i].socket_id === socket.id){
-                delete rooms[room].team2_users[i]
-                break;
+            rooms[room].team1_users = temp
+
+            temp = []
+
+            for (let i = 0; i<rooms[room].team2_users.length; i++){
+                if (rooms[room].team2_users[i] !== user){
+                    temp.push(rooms[room].team2_users[i])
+                }
             }
+
+            rooms[room].team2_users = temp
+
+            delete activeUsers[socket.id]
+
         }
-
-
-        */
     })
-    //io.to('room1').emit('you are in room 1')
+
 })
 
 //connect to database
