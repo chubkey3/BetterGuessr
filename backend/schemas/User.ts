@@ -1,3 +1,5 @@
+const mongoose = require('mongoose')
+
 const UserSchema = mongoose.Schema({
     username: {
         type: String
@@ -18,4 +20,4 @@ const UserSchema = mongoose.Schema({
 
 })
 
-module.exports = UserSchema
+export default UserSchema

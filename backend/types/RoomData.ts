@@ -1,3 +1,5 @@
+import LocationData from "./LocationData"
+
 interface RoomData {
     room_name: string,
     team1_guesses: {
@@ -20,4 +22,4 @@ interface RoomData {
     location: LocationData
 }
 
-module.exports = RoomData
+export default RoomData

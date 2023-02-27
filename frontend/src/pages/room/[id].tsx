@@ -7,7 +7,7 @@ const socket = io('http://localhost:3002')
 const Room = () => {
     const router = useRouter();
     //
-    const { id } = router.query
+    const { id, user } = router.query    
 
     const [message, setMessage] = useState("Not Connected")
 
@@ -16,8 +16,8 @@ const Room = () => {
     const [started, toggleStarted] = useState<boolean>()
 
     useEffect(() => {
-        if (id){
-            socket.emit('join', {room: id, user: 'cumstain'})
+        if (id && user){
+            socket.emit('join', {room: id, user: user})
         }
 
     }, [id])

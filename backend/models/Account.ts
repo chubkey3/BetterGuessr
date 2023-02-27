@@ -1,3 +1,5 @@
+const mongoose = require('mongoose')
+
 const AccountSchema = mongoose.Schema({
     username: {
         type: String,

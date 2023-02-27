@@ -8,11 +8,11 @@ require('dotenv').config()
 
 const data = require('./data.json')
 
-const Room = require('./models/Room')
+import Room from './models/Room'
 
 //types
-const LocationData = require('./types/LocationData')
-const RoomData = require('./types/RoomData.')
+import LocationData from "./types/LocationData"
+import RoomData from './types/RoomData'
 
 const app = express();
 
@@ -23,8 +23,8 @@ const rad = (x: number) => {
     return x * Math.PI / 180;
 }
 
-var getDistance = (p1: typeof LocationData, p2: typeof LocationData) => {
-    var R = 6378137; // Earth’s mean radius in meter
+var getDistance = (p1: LocationData, p2: LocationData) => {    
+    var R = 6378137; // Earth’s mean radius in meter    
     var dLat = rad(p2.lat - p1.lat);
     var dLong = rad(p2.lng - p1.lng);
     var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -53,7 +53,7 @@ function parseData(data: any){
 
 const activeUsers: {[key: string]: {room: string, user: string}} = {} //convert to db?
 
-const findRoom = async (room: string): Promise<typeof RoomData> => {
+const findRoom = async (room: string): Promise<RoomData> => {
     const roomData = await Room.findOne({room_name: room})
 
     return roomData
@@ -66,7 +66,7 @@ const updateRoom = async (room: string, data: any, callback=()=>{}) => {
         } else {
             console.log(err)
         }
-    })
+    })    
 }
 
 const getRandomLocation = () => {
@@ -76,7 +76,7 @@ const getRandomLocation = () => {
 const roundEnd = async (room_name: string) => {
     //subtract health
 
-    let room = await findRoom(room_name)
+    let room = await findRoom(room_name)    
 
     if (room.team1_health <= 0){
         io.to(room_name).emit('win', {team: 'team2', users: room.team2_users})
@@ -160,9 +160,9 @@ io.on("connection", (socket: any) => {
         
         else if (!room){
             socket.emit('room_not_found')   
-        } 
-        
-        else {
+        //} else if (!room.started){//switch to room.started
+            //socket.emit('room_started')
+        } else {
             if (!(room.team1_users.includes(req.user)) && !(room.team2_users.includes(req.user))){
                 socket.join(req.room)
 
@@ -265,7 +265,7 @@ io.on("connection", (socket: any) => {
     })
 
     socket.on("guess", async (r: any) => {         
-        const req: {user: string, room: string, guess: typeof LocationData} = parseData(r)
+        const req: {user: string, room: string, guess: LocationData} = parseData(r)
 
         let room = await findRoom(req.room)
 
@@ -275,7 +275,7 @@ io.on("connection", (socket: any) => {
 
             if (room.started){            
 
-                let temp: typeof LocationData[] = []
+                let temp: LocationData[] = []
 
                 if (room.team1_users.includes(req.user)){
                     temp = room.team1_guesses

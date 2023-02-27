@@ -1,4 +1,5 @@
 const { Decimal128 } = require('mongoose')
+const mongoose = require('mongoose')
 
 const Guess = mongoose.Schema({
     lat: {
@@ -13,4 +14,4 @@ const Guess = mongoose.Schema({
 
 })
 
-module.exports = Guess
+export default Guess

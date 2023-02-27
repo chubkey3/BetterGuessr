@@ -1,1 +1,4 @@
-module.exports = mongoose.model('Users', UserSchema)
+const mongoose = require('mongoose')
+const UserSchema = require('../schemas/User')
+
+export default mongoose.model('Users', UserSchema)

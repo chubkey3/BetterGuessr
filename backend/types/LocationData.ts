@@ -3,4 +3,4 @@ interface LocationData {
     lng: number
 }
 
-module.exports = LocationData
+export default LocationData
