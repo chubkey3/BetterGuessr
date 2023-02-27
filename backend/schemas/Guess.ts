@@ -1,5 +1,4 @@
 const { Decimal128 } = require('mongoose')
-const mongoose = require('mongoose')
 
 const Guess = mongoose.Schema({
     lat: {

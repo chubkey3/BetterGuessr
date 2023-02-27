@@ -1,8 +1,4 @@
-const { Decimal128 } = require('mongoose')
-const Guess = require('../schemas/Guess')
-const UserSchema = require('../schemas/User')
-
-const mongoose = require('mongoose')
+const {Decimal128} = require('mongoose')
 
 const RoomSchema = mongoose.Schema({
     room_name: {
@@ -45,7 +41,6 @@ const RoomSchema = mongoose.Schema({
             default: 0
         }
     }
-
 })
 
 module.exports = mongoose.model('Rooms', RoomSchema)

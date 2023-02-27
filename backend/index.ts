@@ -1,5 +1,5 @@
 const express = require('express')
-const crypto = require('crypto')
+const { randomUUID } = require('crypto')
 const {Server} = require('socket.io')
 const mongoose = require('mongoose')
 const compression = require('compression')
@@ -7,17 +7,23 @@ const compression = require('compression')
 require('dotenv').config()
 
 const data = require('./data.json')
+
 const Room = require('./models/Room')
+
+//types
+const LocationData = require('./types/LocationData')
+const RoomData = require('./types/RoomData.')
 
 const app = express();
 
 const server = require('http').createServer(app);
 
-const rad = (x) => {
+
+const rad = (x: number) => {
     return x * Math.PI / 180;
 }
 
-var getDistance = (p1, p2) => {
+var getDistance = (p1: typeof LocationData, p2: typeof LocationData) => {
     var R = 6378137; // Earth’s mean radius in meter
     var dLat = rad(p2.lat - p1.lat);
     var dLong = rad(p2.lng - p1.lng);
@@ -32,11 +38,11 @@ var getDistance = (p1, p2) => {
 
 //in the future make team1_guesses/team2_guesses an array of objects so users can be associated to guesses
 
-function parseData(data){
+function parseData(data: any){
     try {
         var o = JSON.parse(data)
 
-        if (o && typeof o == Object){
+        if (o && typeof o === 'object'){
             return o
         }
     }
@@ -45,16 +51,16 @@ function parseData(data){
     return data
 }
 
-const activeUsers = {} //convert to db?
+const activeUsers: {[key: string]: {room: string, user: string}} = {} //convert to db?
 
-const findRoom = async (room) => {
+const findRoom = async (room: string): Promise<typeof RoomData> => {
     const roomData = await Room.findOne({room_name: room})
 
     return roomData
 }
 
-const updateRoom = async (room, data, callback=()=>{}) => {
-    Room.findOneAndUpdate({room_name: room}, data, {upsert: true}, function(err) {
+const updateRoom = async (room: string, data: any, callback=()=>{}) => {
+    Room.findOneAndUpdate({room_name: room}, data, {upsert: true}, function(err: any) {
         if (!err){
             callback()
         } else {
@@ -67,7 +73,7 @@ const getRandomLocation = () => {
     return data[Math.floor(Math.random()*data.length)]
 }
 
-const roundEnd = async (room_name) => {
+const roundEnd = async (room_name: string) => {
     //subtract health
 
     let room = await findRoom(room_name)
@@ -95,7 +101,7 @@ const roundEnd = async (room_name) => {
         
 }
 
-const calculatePoints = (distance) => {
+const calculatePoints = (distance: number) => {
     if (distance > Math.pow(10, 7)){
         return 0
     }
@@ -103,14 +109,16 @@ const calculatePoints = (distance) => {
     return (1/(2*Math.pow(10, 10))*(distance - Math.pow(10, 7))^2)
 }
 
-const calculateHealth = async (room_name) => {
-    const team1_guess = 99999999999
-    const team2_guess = 99999999999
+const calculateHealth = async (room_name: string) => {
+    let team1_guess = 99999999999
+    let team2_guess = 99999999999
 
     let room = await findRoom(room_name)
 
     const team1_guesses = room.team1_guesses
     const team2_guesses = room.team2_guesses
+
+    let distance = 0
 
     for (let i = 0; i<team1_guesses.length; i++){
         distance = getDistance(team1_guesses[i], room.location)
@@ -139,10 +147,10 @@ const io = new Server(server, { cors: {
 }});
 
 
-io.on("connection", (socket) => {
+io.on("connection", (socket: any) => {
 
-    socket.on("join", async (r) => {
-        const req = parseData(r)
+    socket.on("join", async (r: any) => {
+        const req: {room: string, user: string} = parseData(r)
 
         let room = await findRoom(req.room)
 
@@ -175,8 +183,8 @@ io.on("connection", (socket) => {
 
     })
 
-    socket.on("switch_teams", async (r) => {
-        const req = parseData(r)
+    socket.on("switch_teams", async (r: any) => {
+        const req: {user: string, room: string} = parseData(r)
 
         if (!req.room || !req.user){
             socket.emit('invalid_payload')
@@ -184,7 +192,7 @@ io.on("connection", (socket) => {
 
         else {
             
-            var temp = []
+            var temp: string[] = []
 
             let room = await findRoom(req.room)
 
@@ -230,8 +238,8 @@ io.on("connection", (socket) => {
         }
     })
 
-    socket.on("start", async (r) => {
-        const req = parseData(r)
+    socket.on("start", async (r: any) => {
+        const req: {room: string} = parseData(r)
 
         if (!req.room){
             socket.emit('invalid_payload')
@@ -256,8 +264,8 @@ io.on("connection", (socket) => {
         }   
     })
 
-    socket.on("guess", async (r) => {         
-        const req = parseData(r)
+    socket.on("guess", async (r: any) => {         
+        const req: {user: string, room: string, guess: typeof LocationData} = parseData(r)
 
         let room = await findRoom(req.room)
 
@@ -267,25 +275,26 @@ io.on("connection", (socket) => {
 
             if (room.started){            
 
-                let temp = []
+                let temp: typeof LocationData[] = []
 
                 if (room.team1_users.includes(req.user)){
                     temp = room.team1_guesses
-                    temp.push({lat: req.lat, lng: req.lng})
+                    temp.push({lat: req.guess.lat, lng: req.guess.lng})
                     updateRoom(req.room, {guessed: room.guessed + 1, team1_guesses: temp})
 
                 } else {
                     temp = room.team2_guesses
-                    temp.push({lat: req.lat, lng: req.lng})
+                    temp.push({lat: req.guess.lat, lng: req.guess.lng})
                     updateRoom(req.room, {guessed: room.guessed + 1, team2_guesses: temp})
                 }
     
-                io.to(req.room).emit('guess', {lat: req.lat, lng: req.lng, user: req.user})
+                io.to(req.room).emit('guess', {lat: req.guess.lat, lng: req.guess.lng, user: req.user})
     
                 calculateHealth(req.room)
     
                 if (room.guessed === 1){
-                    setTimeout(() => roundEnd(req.room), 1000*room.countdown_time)
+                    //setTimeout(() => roundEnd(req.room), 1000*room.countdown_time)
+                    setTimeout(() => roundEnd(req.room), 1000*15)
                 }
     
                 else if (room.guessed === (room.team1_users.length + room.team2_users.length)){
@@ -313,7 +322,7 @@ io.on("connection", (socket) => {
 
             let room = await findRoom(room_name)
 
-            let temp = []
+            let temp: string[] = []
 
             for (let i = 0; i<room.team1_users.length; i++){
 
@@ -358,12 +367,12 @@ updateRoom('abc', {team1_users: [], team2_users: [], started: false}, ()=>{conso
 app.use(compression())
 app.use(express.json())
 
-app.get('/', (req, res) => {
+app.get('/', (res: any) => {
     res.send('Betterguessr backend service.')
 })
 
-app.get('/join', (req, res) => {
-    res.send(crypto.randomUUID())
+app.get('/join', (res: any) => {
+    res.send(randomUUID())
 })
 
 app.listen(3001, () => {
