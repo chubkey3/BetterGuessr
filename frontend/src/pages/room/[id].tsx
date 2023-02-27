@@ -9,8 +9,11 @@ const Room = () => {
     //
     const { id } = router.query
 
-    const [message, setMessage] = useState("hello")
+    const [message, setMessage] = useState("Not Connected")
 
+    const [team1, setTeam1] = useState<string>()
+    const [team2, setTeam2] = useState<string>()
+    const [started, toggleStarted] = useState<boolean>()
 
     useEffect(() => {
         if (id){
@@ -30,7 +33,11 @@ const Room = () => {
         })
 
         socket.on('room', (data) => {
-            setMessage(JSON.stringify(data))
+            //setTeam1(data["team1"])
+            //setTeam2(data["team2"])
+            setTeam1(JSON.stringify(data["team1"]))
+            setTeam2(JSON.stringify(data["team2"]))
+            setMessage("Connected")
         })
 
     }, [socket])
@@ -39,9 +46,24 @@ const Room = () => {
         socket.emit('switch_teams', {room: id, user: 'cumstain'})
     }
 
+    const startRoom = () => {
+        socket.emit('start', {room: id})
+    }
+
     return id ? <div>
         {message}
-        <button onClick={switchTeams}>switch</button>
+        <button onClick={switchTeams}>switch team</button>
+        <h1>Team 1</h1>
+        <h2>{team1}</h2>
+        {/*team1.map((user) => (
+            <h2>{user}</h2>
+        ))*/}
+        <h1>Team 2</h1>
+        <h2>{team2}</h2>
+        {/*team2.map((user) => (
+            <h2>{user}</h2>
+        ))*/}
+        <button onClick={startRoom}>Start</button>
         </div>
         : <div className="w-full h-full"></div>
 }

@@ -13,13 +13,9 @@ const app = express();
 
 const server = require('http').createServer(app);
 
-const rooms = {
-    "abc": {team1_guesses: [], team2_guesses: [], team1_users: [], team2_users: [], guessed: 0, team1_health: 25000, team2_health: 25000, started: false}
-}
-
 const rad = (x) => {
     return x * Math.PI / 180;
-  };
+}
 
 var getDistance = (p1, p2) => {
     var R = 6378137; // Earth’s mean radius in meter
@@ -31,12 +27,10 @@ var getDistance = (p1, p2) => {
     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     var d = R * c;    
     return d
-};
+}
 
 
 //in the future make team1_guesses/team2_guesses an array of objects so users can be associated to guesses
-
-//replace all rooms[guessData.room] with room
 
 function parseData(data){
     try {
@@ -53,37 +47,51 @@ function parseData(data){
 
 const activeUsers = {} //convert to db?
 
+const findRoom = async (room) => {
+    const roomData = await Room.findOne({room_name: room})
+
+    return roomData
+}
+
+const updateRoom = async (room, data, callback=()=>{}) => {
+    Room.findOneAndUpdate({room_name: room}, data, {upsert: true}, function(err) {
+        if (!err){
+            callback()
+        } else {
+            console.log(err)
+        }
+    })
+}
 
 const getRandomLocation = () => {
     return data[Math.floor(Math.random()*data.length)]
 }
 
-const roundEnd = (room) => {
+const roundEnd = async (room_name) => {
     //subtract health
 
+    let room = await findRoom(room_name)
 
-    if (rooms[room].team1_health <= 0){
-        io.to(room).emit('win', {team: 'team2', users: rooms[room].team2_users})
-        rooms[room].started = false;
+    if (room.team1_health <= 0){
+        io.to(room_name).emit('win', {team: 'team2', users: room.team2_users})
+        updateRoom(room_name, {started: false})
 
-    } else if (rooms[room].team2_health <= 0){
-        io.to(room).emit('win', {team: 'team1', users: rooms[room].team1_users})
-        rooms[room].started = false;
+    } else if (room.team2_health <= 0){
+        io.to(room_name).emit('win', {team: 'team1', users: room.team1_users})
+        updateRoom(room_name, {started: false})
     
     } else {
-        io.to(room).emit('round_over', {team1_guesses: rooms[room].team1_guesses, team2_guesses: rooms[room].team2_guesses, team1_health: rooms[room].team1_health, team2_health: rooms[room].team2_health, team1_distance: 1, team2_distance: 2})
+        io.to(room_name).emit('round_over', {team1_guesses: room.team1_guesses, team2_guesses: room.team2_guesses, team1_health: room.team1_health, team2_health: room.team2_health, team1_distance: 1, team2_distance: 2})
         setTimeout(() => {
             let location = getRandomLocation()
-            io.to(room).emit('new_round', location)
-            rooms[room].location = location
+            io.to(room_name).emit('new_round', location)
+            updateRoom(room_name, {location: location})
         
         }, 3000)
         
     }
 
-    rooms[room].guessed = 0;
-    rooms[room].team1_guesses = [];
-    rooms[room].team2_guesses = [];
+    updateRoom(room_name, {guessed: 0, team1_guesses: [], team2_guesses: []})
         
 }
 
@@ -95,30 +103,33 @@ const calculatePoints = (distance) => {
     return (1/(2*Math.pow(10, 10))*(distance - Math.pow(10, 7))^2)
 }
 
-const calculateHealth = (room) => {
+const calculateHealth = async (room_name) => {
     const team1_guess = 99999999999
     const team2_guess = 99999999999
-    const team1_guesses = rooms[room].team1_guesses
-    const team2_guesses = rooms[room].team2_guesses
+
+    let room = await findRoom(room_name)
+
+    const team1_guesses = room.team1_guesses
+    const team2_guesses = room.team2_guesses
 
     for (let i = 0; i<team1_guesses.length; i++){
-        distance = getDistance(team1_guesses[i], rooms[room].location)
+        distance = getDistance(team1_guesses[i], room.location)
         if (distance < team1_guess){
             team1_guess = distance
         }
     }
 
     for (let i = 0; i<team2_guesses.length; i++){
-        distance = getDistance(team2_guesses[i], rooms[room].location)
+        distance = getDistance(team2_guesses[i], room.location)
         if (distance < team2_guess){
             team2_guess = distance
         }
     }
 
     if (team1_guess < team2_guess){
-        team2_guess -= calculatePoints(team1_guess) - calculatePoints(team2_guess)
+        updateRoom(room_name, {team2_health: Math.max(0, room.team2_health - (calculatePoints(team1_guess) - calculatePoints(team2_guess)))})
     } else if (team2_guess < team1_guess){
-        team1_guess -= calculatePoints(team2_guess) - calculatePoints(team1_guess)
+        updateRoom(room_name, {team1_health: Math.max(0, room.team1_health - (calculatePoints(team2_guess) - calculatePoints(team1_guess)))})
     }
     
 }
@@ -127,122 +138,164 @@ const io = new Server(server, { cors: {
     origin: '*'
 }});
 
-console.log(activeUsers)
 
 io.on("connection", (socket) => {
 
-    socket.on("join", (r) => {
+    socket.on("join", async (r) => {
         const req = parseData(r)
 
-        if (!req || !req.room || !req.user){
+        let room = await findRoom(req.room)
+
+        if (!req.room || !req.user){
             socket.emit('invalid_payload')
         }
         
-        else if (!(req.room in rooms)){
+        else if (!room){
             socket.emit('room_not_found')   
         } 
         
         else {
-            if (!(rooms[req.room].team1_users.includes(req.user))){
+            if (!(room.team1_users.includes(req.user)) && !(room.team2_users.includes(req.user))){
                 socket.join(req.room)
-                activeUsers[socket.id] = {room: req.room, user: req.user}
-                rooms[req.room].team1_users.push(req.user)
-                io.to(req.room).emit('room', {team1: rooms[req.room].team1_users, team2: rooms[req.room].team2_users})
-            }   
-        }
 
-        console.log(activeUsers)
+                activeUsers[socket.id] = {room: req.room, user: req.user}
+
+                let team1_users = room.team1_users
+
+                team1_users.push(req.user)
+
+                await updateRoom(req.room, {team1_users: team1_users}, () => {
+                    io.to(req.room).emit('room', {team1: room.team1_users, team2: room.team2_users})
+                })
+
+            } else {
+                socket.emit('user_already_joined')
+            }  
+        }
 
     })
 
-    socket.on("switch_teams", (r) => {
+    socket.on("switch_teams", async (r) => {
         const req = parseData(r)
 
-        if (!req || !req.room || !req.user){
+        if (!req.room || !req.user){
             socket.emit('invalid_payload')
         }
 
         else {
             
             var temp = []
-        
-            if (rooms[req.room].team1_users.includes(req.user)){           
-                for (var i = 0; i<rooms[req.room].team1_users.length; i++){
-                    if (rooms[req.room].team1_users[i] === req.user){
+
+            let room = await findRoom(req.room)
+
+            if (room.started){
+                socket.emit('room_started')
+
+            } else if (room.team1_users.includes(req.user)){           
+                for (var i = 0; i<room.team1_users.length; i++){
+                    if (room.team1_users[i] === req.user){
                         continue
                     }
-                    temp.push(rooms[req.room].team1_users[i])
+                    temp.push(room.team1_users[i])
                 }            
+                
+                let team2_users = room.team2_users
 
-                rooms[req.room].team1_users = temp;
-                rooms[req.room].team2_users.push(req.user)
+                team2_users.push(req.user)
+
+                await updateRoom(req.room, {team1_users: temp, team2_users: team2_users}, async () => {
+                    let test = await findRoom(req.room)
+
+                    io.to(req.room).emit('room', {team1: test.team1_users, team2: test.team2_users})
+                })
 
             } else {
-                for (var i = 0; i<rooms[req.room].team2_users.length; i++){
-                    if (rooms[req.room].team2_users[i] === req.user){
+                for (var i = 0; i<room.team2_users.length; i++){
+                    if (room.team2_users[i] === req.user){
                         continue
                     }
-                    temp.push(rooms[req.room].team2_users[i])
+                    temp.push(room.team2_users[i])
                 }
 
-                rooms[req.room].team2_users = temp;
-                rooms[req.room].team1_users.push(req.user)
+                let team1_users = room.team1_users
+
+                team1_users.push(req.user)
+
+                await updateRoom(req.room, {team1_users: team1_users, team2_users: temp}, async () => {
+                    let test = await findRoom(req.room)
+
+                    io.to(req.room).emit('room', {team1: test.team1_users, team2: test.team2_users})
+                })
             }
-
-            io.to(req.room).emit('room', {team1: rooms[req.room].team1_users, team2: rooms[req.room].team2_users})
-
         }
-
-        
     })
 
-    socket.on("start", (r) => {
+    socket.on("start", async (r) => {
         const req = parseData(r)
 
-        if (req.room in rooms){
-            if (rooms[req.room].started){
-                room[req.room].started = true;
+        if (!req.room){
+            socket.emit('invalid_payload')
+        } else {
+
+            let room = await findRoom(req.room)
+
+            if (room){
+                if (!room.started){
+                    let location = getRandomLocation()
+                    
+                    updateRoom(req.room, {started: true, location: location})
+                                       
+                    io.to(req.room).emit('new_round', location)
+                } else {
+                    socket.emit('room_started')
+                }
                 
-                let location = getRandomLocation()
-                io.to(req.room).emit('new_round', location)
-                rooms[req.room].location = location
             } else {
-                socket.emit('room_started')
+                socket.emit('room_not_found')
             }
-            
-        } else {
-            socket.emit('room_not_found', `No Room Exists with the ID: ${req.room}`)
-        }
+        }   
     })
 
-    socket.on("guess", (r) => {         
+    socket.on("guess", async (r) => {         
         const req = parseData(r)
-        
-        if (rooms[req.room].started){            
-            if (rooms[guessData.room].team1_users.includes(guessData.user)){
-                rooms[guessData.room].team1_guesses.push({lat: guessData.lat, lng: guessData.lng})
-            } else {
-                rooms[guessData.room.team2_guesses.push({lat: guessData.lat, lng: guessData.lng})]
-            }
 
-            io.to(guessData.room).emit('guess', {lat: guessData.lat, lng: guessData.lng, user: guessData.user})
+        let room = await findRoom(req.room)
 
-            rooms[guessData.room].guessed = rooms[guessData.room].guessed + 1
-
-            calculateHealth(guessData.room)
-
-            if (rooms[guessData.room].guessed === 1){
-                setTimeout(() => roundEnd(guessData.room), 1000*rooms[guessData.room].countdown_time)
-            }
-
-            else if (rooms[guessData.room].guessed === (rooms[guessData.room].team1_users.length + rooms[guessData.room].team2_users.length)){
-                roundEnd(guessData.room)
-            }                                    
-            
+        if (!room){
+            socket.emit('room_not_found')
         } else {
-            socket.emit('room_not_started')
-        }
-         
+
+            if (room.started){            
+
+                let temp = []
+
+                if (room.team1_users.includes(req.user)){
+                    temp = room.team1_guesses
+                    temp.push({lat: req.lat, lng: req.lng})
+                    updateRoom(req.room, {guessed: room.guessed + 1, team1_guesses: temp})
+
+                } else {
+                    temp = room.team2_guesses
+                    temp.push({lat: req.lat, lng: req.lng})
+                    updateRoom(req.room, {guessed: room.guessed + 1, team2_guesses: temp})
+                }
+    
+                io.to(req.room).emit('guess', {lat: req.lat, lng: req.lng, user: req.user})
+    
+                calculateHealth(req.room)
+    
+                if (room.guessed === 1){
+                    setTimeout(() => roundEnd(req.room), 1000*room.countdown_time)
+                }
+    
+                else if (room.guessed === (room.team1_users.length + room.team2_users.length)){
+                    roundEnd(req.room)
+                }                                    
+                
+            } else {
+                socket.emit('room_not_started')
+            }
+        } 
         
     })
 
@@ -251,32 +304,36 @@ io.on("connection", (socket) => {
     })
 
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
 
         if (socket.id in activeUsers){
 
-            const room = activeUsers[socket.id].room
+            const room_name = activeUsers[socket.id].room
             const user = activeUsers[socket.id].user
+
+            let room = await findRoom(room_name)
 
             let temp = []
 
-            for (let i = 0; i<rooms[room].team1_users.length; i++){
-                if (rooms[room].team1_users[i] !== user){
-                    temp.push(rooms[room].team1_users[i])
+            for (let i = 0; i<room.team1_users.length; i++){
+
+                if (room.team1_users[i] !== user){
+                    temp.push(room.team1_users[i])
                 }
             }
 
-            rooms[room].team1_users = temp
+            await updateRoom(room_name, {team1_users: temp})
 
             temp = []
 
-            for (let i = 0; i<rooms[room].team2_users.length; i++){
-                if (rooms[room].team2_users[i] !== user){
-                    temp.push(rooms[room].team2_users[i])
+            for (let i = 0; i<room.team2_users.length; i++){
+                
+                if (room.team2_users[i] !== user){
+                    temp.push(room.team2_users[i])
                 }
             }
 
-            rooms[room].team2_users = temp
+            await updateRoom(room_name, {team2_users: temp})
 
             delete activeUsers[socket.id]
 
@@ -286,14 +343,16 @@ io.on("connection", (socket) => {
 })
 
 //connect to database
-
-/*
 mongoose.connect(process.env.MONGO_URL, {dbName: 'betterguessr'})
     .then(() => console.log('Connected to Database!'))
     .catch(() => console.log('Error Connecting to Database!'))
-*/
 
+mongoose.set('strictQuery', true);
+
+//database testing stuff
 //new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000, location: {lat: 0, lng: 0}}).save()
+updateRoom('abc', {team1_users: [], team2_users: [], started: false}, ()=>{console.log('restarted db')})
+
 
 //middleware
 app.use(compression())

@@ -18,10 +18,10 @@ const RoomSchema = mongoose.Schema({
         type: String
     },
     team1_users: {
-        type: [UserSchema]
+        type: [String] //change to UserSchema later
     },
     team2_users: {
-        type: [UserSchema]
+        type: [String]
     },
     guessed: {
         type: Number
