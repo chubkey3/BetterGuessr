@@ -59,14 +59,21 @@ const findRoom = async (room: string): Promise<RoomData> => {
     return roomData
 }
 
-const updateRoom = async (room: string, data: any, callback=()=>{}) => {
-    Room.findOneAndUpdate({room_name: room}, data, {upsert: true}, function(err: any) {
-        if (!err){
-            callback()
-        } else {
+const updateRoom = async (room: string, data: any, callback?: any) => {
+    Room.findOneAndUpdate({room_name: room}, data, {upsert: true}, async function(err: any) {
+        if (!err && callback){
+            
+            await updateUsers(room)
+        } else if (err) {
             console.log(err)
         }
     })    
+}
+
+const updateUsers = async (room: string) => {
+    let updatedRoom = await findRoom(room)
+
+    io.to(room).emit('room', {team1: updatedRoom.team1_users, team2: updatedRoom.team2_users})
 }
 
 const getRandomLocation = () => {
@@ -172,9 +179,7 @@ io.on("connection", (socket: any) => {
 
                 team1_users.push(req.user)
 
-                await updateRoom(req.room, {team1_users: team1_users}, () => {
-                    io.to(req.room).emit('room', {team1: room.team1_users, team2: room.team2_users})
-                })
+                await updateRoom(req.room, {team1_users: team1_users}, updateUsers(req.room))
 
             } else {
                 socket.emit('user_already_joined')
@@ -211,11 +216,7 @@ io.on("connection", (socket: any) => {
 
                 team2_users.push(req.user)
 
-                await updateRoom(req.room, {team1_users: temp, team2_users: team2_users}, async () => {
-                    let test = await findRoom(req.room)
-
-                    io.to(req.room).emit('room', {team1: test.team1_users, team2: test.team2_users})
-                })
+                await updateRoom(req.room, {team1_users: temp, team2_users: team2_users}, updateUsers(req.room))
 
             } else {
                 for (var i = 0; i<room.team2_users.length; i++){
@@ -229,11 +230,7 @@ io.on("connection", (socket: any) => {
 
                 team1_users.push(req.user)
 
-                await updateRoom(req.room, {team1_users: team1_users, team2_users: temp}, async () => {
-                    let test = await findRoom(req.room)
-
-                    io.to(req.room).emit('room', {team1: test.team1_users, team2: test.team2_users})
-                })
+                await updateRoom(req.room, {team1_users: team1_users, team2_users: temp}, updateUsers(req.room))
             }
         }
     })
@@ -322,27 +319,24 @@ io.on("connection", (socket: any) => {
 
             let room = await findRoom(room_name)
 
-            let temp: string[] = []
+            let temp1: string[] = []
+            let temp2: string[] = []
 
             for (let i = 0; i<room.team1_users.length; i++){
 
                 if (room.team1_users[i] !== user){
-                    temp.push(room.team1_users[i])
+                    temp1.push(room.team1_users[i])
                 }
-            }
-
-            await updateRoom(room_name, {team1_users: temp})
-
-            temp = []
+            }                   
 
             for (let i = 0; i<room.team2_users.length; i++){
                 
                 if (room.team2_users[i] !== user){
-                    temp.push(room.team2_users[i])
+                    temp2.push(room.team2_users[i])
                 }
-            }
+            }            
 
-            await updateRoom(room_name, {team2_users: temp})
+            await updateRoom(room_name, {team1_users: temp1, team2_users: temp2}, updateUsers(room_name))
 
             delete activeUsers[socket.id]
 
@@ -360,7 +354,10 @@ mongoose.set('strictQuery', true);
 
 //database testing stuff
 //new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000, location: {lat: 0, lng: 0}}).save()
-updateRoom('abc', {team1_users: [], team2_users: [], started: false}, ()=>{console.log('restarted db')})
+updateRoom('abc', {team1_users: [], team2_users: [], started: false})
+.then(() => {
+    console.log('updated db')
+})
 
 
 //middleware

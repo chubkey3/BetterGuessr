@@ -30,7 +30,7 @@ const mapStyles = {
   borderRadius: '5px'
 }
 
-function MyComponent({ center, setParentMarkers }: Props) {
+function GuessMap({ center, setParentMarkers }: Props) {
   const [markers, setMarkers] = useState<google.maps.LatLngLiteral[]>([]);
   const mapRef = useRef(null)
 
@@ -82,4 +82,4 @@ function MyComponent({ center, setParentMarkers }: Props) {
   ) : <></>
 }
 
-export default MyComponent
+export default GuessMap
