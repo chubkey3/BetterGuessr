@@ -35,11 +35,11 @@ const RoomSchema = mongoose.Schema({
     },
     location: {
         lat: {
-            type: Decimal128,
+            type: Number,
             default: 0
         },
         lng: {
-            type: Decimal128,
+            type: Number,
             default: 0
         }
     }

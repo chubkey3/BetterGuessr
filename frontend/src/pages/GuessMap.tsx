@@ -1,9 +1,12 @@
-import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import React, { useEffect, useRef, useState, useCallback } from 'react'
+import { Socket } from 'socket.io-client';
 
 interface Props {
-  center: google.maps.LatLngLiteral,
-  setParentMarkers: any
+  setParentMarkers: any,
+  socket: Socket,
+  user: string | undefined,
+  room: string | string[] | undefined
 }
  
 const mapOptions = {
@@ -30,23 +33,29 @@ const mapStyles = {
   borderRadius: '5px'
 }
 
-function GuessMap({ center, setParentMarkers }: Props) {
+function GuessMap({ setParentMarkers, socket, user, room }: Props) {
   const [markers, setMarkers] = useState<google.maps.LatLngLiteral[]>([]);
+  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral | undefined>({lat: 0, lng: 0})
+  
+  const [map, setMap] = useState<google.maps.Map | null>(null)
   const mapRef = useRef(null)
 
   useEffect(() => {
-    if (markers[0]){
-      setParentMarkers(markers)
-    }
- 
-  }, [markers])
+    socket.on("guess", (data) => {
+      setMarkers((prevMarkers) => {
+        return prevMarkers.concat(data.guess)
+      })
+
+      setParentMarkers((prevMarkers: any) => {
+        return prevMarkers.concat(data.guess)
+      })      
+    })
+  }, [])
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: "AIzaSyAa8AwVw9QKRS5AyGTih-iqcXgJ0ImcJ7o"
   })
-
-  const [map, setMap] = useState<google.maps.Map | null>(null)
 
   const onLoad = useCallback(function callback(map: google.maps.Map) {
     map.setZoom(1)
@@ -60,14 +69,14 @@ function GuessMap({ center, setParentMarkers }: Props) {
   }, [])
 
   const onMapClick = (e: any) => {
-    setMarkers((current) => [{ lat: e.latLng.lat(), lng: e.latLng.lng() }, center])
+    socket.emit('guess', {user: user, room: room, guess: {lat: e.latLng.lat(), lng: e.latLng.lng()}})
   }
 
   return isLoaded ? (
     <div className='guess-map-wrapper'>
       <GoogleMap
         mapContainerStyle={mapStyles}
-        center={{lat: 0, lng: 0}}
+        center={mapCenter}
         zoom={2}
         onLoad={onLoad}
         onUnmount={onUnmount}
@@ -76,6 +85,9 @@ function GuessMap({ center, setParentMarkers }: Props) {
         ref={mapRef}
         mapContainerClassName={'guess-map'}
       >
+        {markers.map((marker) => (
+          <Marker animation={window.google.maps.Animation.DROP} icon={{url: "/marker.png"}} position={{ lat: marker.lat, lng: marker.lng }} />
+        ))}
       </GoogleMap>
       <button>{(markers.length === 0) ? 'Place your pin to guess' : 'Guess'}</button>
     </div>

@@ -1,9 +1,13 @@
-import React from 'react'
+import { useState, useEffect, useCallback, memo } from 'react'
 import { GoogleMap, Marker, useJsApiLoader, Polyline } from '@react-google-maps/api';
 
 
 interface Props {
-  markers: google.maps.LatLngLiteral[]
+  markers: google.maps.LatLngLiteral[],
+  center: google.maps.LatLngLiteral,
+  team1_health?: number,
+  team2_health?: number,
+  countdown: number
 }
 
 const containerStyle = {
@@ -20,54 +24,35 @@ const mapOptions = {
 
 
 
-function FullscreenMap({markers}: Props) {
+function FullscreenMap({markers, center, team1_health, team2_health, countdown}: Props) {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: "AIzaSyAa8AwVw9QKRS5AyGTih-iqcXgJ0ImcJ7o"
   })
 
-  const [map, setMap] = React.useState<google.maps.Map | null>(null)
-  const [distance, setDistance] = React.useState<number>()
+  const [map, setMap] = useState<google.maps.Map | null>(null)
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isLoaded && map) {
       var bounds = new window.google.maps.LatLngBounds();
       for (var i = 0; i < markers.length; i++) {
         bounds.extend(markers[i])
       }
+      bounds.extend(center)
     
     map.fitBounds(bounds)
 
     }
-
-    if (markers[0] && markers[1]){
-      getDistance(markers[0], markers[1])
-    }
     
   }, [map, markers])
 
-  var rad = function (x: number) {
-    return x * Math.PI / 180;
-  };
+  const onLoad = useCallback(function callback(map: google.maps.Map) {
+    map.setZoom(1)
 
-  var getDistance = function (p1: google.maps.LatLngLiteral, p2: google.maps.LatLngLiteral) {
-    var R = 6378137; // Earth’s mean radius in meter
-    var dLat = rad(p2.lat - p1.lat);
-    var dLong = rad(p2.lng - p1.lng);
-    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(rad(p1.lat)) * Math.cos(rad(p2.lat)) *
-      Math.sin(dLong / 2) * Math.sin(dLong / 2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    var d = R * c;
-    setDistance(Math.floor(d / 1000))
-  };
-
-
-  const onLoad = React.useCallback(function callback(map: google.maps.Map) {
     setMap(map)
   }, [])
 
-  const onUnmount = React.useCallback(function callback(map: google.maps.Map) {
+  const onUnmount = useCallback(function callback(map: google.maps.Map) {
     setMap(null)
   }, [])
 
@@ -75,22 +60,28 @@ function FullscreenMap({markers}: Props) {
     <div className={'overlay'}>
       <GoogleMap
         mapContainerStyle={containerStyle}
-        center={markers[1]}
+        center={center}
         zoom={2}
         onLoad={onLoad}
         onUnmount={onUnmount}
         options={mapOptions}
       >
         {markers.map((marker) => (
-          <Marker key={marker.lat} animation={window.google.maps.Animation.DROP} icon={{url: "marker.png"}} position={{ lat: marker.lat, lng: marker.lng }} />
+          <Marker key={marker.lat} animation={window.google.maps.Animation.DROP} icon={{url: "/marker.png"}} position={{ lat: marker.lat, lng: marker.lng }} />
         ))}
-        <Polyline path={markers}/>
+        <Marker key={'location'} animation={window.google.maps.Animation.DROP} icon={{url: "/marker.png"}} position={center}/>
+        {markers.map((marker) => (
+          <Polyline path={[marker, center]}/>
+        ))}
         <></>
       </GoogleMap>
-      <h3>You are {distance}km Away.</h3>
-      <button className='guess-again-button' onClick={() => {window.location.reload()}}>Guess Again</button>
+      <div>
+        {team1_health && <h1>{team1_health}</h1>}
+        {team2_health && <h1>{team2_health}</h1>}
+      </div>
+      <h1>{`New Round in ${countdown}`}</h1>
     </div>
   ) : <></>
 }
 
-export default React.memo(FullscreenMap)
+export default memo(FullscreenMap)

@@ -81,8 +81,6 @@ const getRandomLocation = () => {
 }
 
 const roundEnd = async (room_name: string) => {
-    //subtract health
-
     let room = await findRoom(room_name)    
 
     if (room.team1_health <= 0){
@@ -100,7 +98,7 @@ const roundEnd = async (room_name: string) => {
             io.to(room_name).emit('new_round', location)
             updateRoom(room_name, {location: location})
         
-        }, 3000)
+        }, 5000)//time between showing guesses and displaying next round
         
     }
 
@@ -167,23 +165,33 @@ io.on("connection", (socket: any) => {
         
         else if (!room){
             socket.emit('room_not_found')   
-        //} else if (!room.started){//switch to room.started
-            //socket.emit('room_started')
         } else {
             if (!(room.team1_users.includes(req.user)) && !(room.team2_users.includes(req.user))){
-                socket.join(req.room)
+                if (room.started){
+                    socket.emit('room_started')
+                } else {
+                    socket.join(req.room)
 
-                activeUsers[socket.id] = {room: req.room, user: req.user}
+                    activeUsers[socket.id] = {room: req.room, user: req.user}
 
-                let team1_users = room.team1_users
+                    let team1_users = room.team1_users
 
-                team1_users.push(req.user)
+                    team1_users.push(req.user)
 
-                await updateRoom(req.room, {team1_users: team1_users}, updateUsers(req.room))
+                    await updateRoom(req.room, {team1_users: team1_users}, updateUsers(req.room))
+                }
+                
 
-            } else {
-                socket.emit('user_already_joined')
-            }  
+            } else if (room.team1_users.includes(req.user) || room.team2_users.includes(req.user)){
+
+                if (room.started){
+                    socket.join(req.room)
+                    socket.emit('rejoin')
+                    socket.emit('new_round', room.location)
+                } else {
+                    socket.emit('user_already_joined')
+                }
+            }
         }
 
     })
@@ -274,6 +282,8 @@ io.on("connection", (socket: any) => {
 
                 let temp: LocationData[] = []
 
+                let guessed = room.guessed + 1
+
                 if (room.team1_users.includes(req.user)){
                     temp = room.team1_guesses
                     temp.push({lat: req.guess.lat, lng: req.guess.lng})
@@ -285,18 +295,16 @@ io.on("connection", (socket: any) => {
                     updateRoom(req.room, {guessed: room.guessed + 1, team2_guesses: temp})
                 }
     
-                io.to(req.room).emit('guess', {lat: req.guess.lat, lng: req.guess.lng, user: req.user})
+                io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}})
     
-                calculateHealth(req.room)
+                calculateHealth(req.room)//WIP
     
-                if (room.guessed === 1){
-                    //setTimeout(() => roundEnd(req.room), 1000*room.countdown_time)
-                    setTimeout(() => roundEnd(req.room), 1000*15)
-                }
-    
-                else if (room.guessed === (room.team1_users.length + room.team2_users.length)){
+                if (guessed === (room.team1_users.length + room.team2_users.length)){
                     roundEnd(req.room)
-                }                                    
+                } else if (guessed === 1){
+                    //setTimeout(() => roundEnd(req.room), 1000*room.countdown_time)
+                    setTimeout(() => roundEnd(req.room), 1000)
+                }                          
                 
             } else {
                 socket.emit('room_not_started')
@@ -319,26 +327,30 @@ io.on("connection", (socket: any) => {
 
             let room = await findRoom(room_name)
 
-            let temp1: string[] = []
-            let temp2: string[] = []
+            if (!room.started){
 
-            for (let i = 0; i<room.team1_users.length; i++){
+                let temp1: string[] = []
+                let temp2: string[] = []
 
-                if (room.team1_users[i] !== user){
-                    temp1.push(room.team1_users[i])
-                }
-            }                   
+                for (let i = 0; i<room.team1_users.length; i++){
 
-            for (let i = 0; i<room.team2_users.length; i++){
-                
-                if (room.team2_users[i] !== user){
-                    temp2.push(room.team2_users[i])
-                }
-            }            
+                    if (room.team1_users[i] !== user){
+                        temp1.push(room.team1_users[i])
+                    }
+                }                   
 
-            await updateRoom(room_name, {team1_users: temp1, team2_users: temp2}, updateUsers(room_name))
+                for (let i = 0; i<room.team2_users.length; i++){
+                    
+                    if (room.team2_users[i] !== user){
+                        temp2.push(room.team2_users[i])
+                    }
+                }            
 
-            delete activeUsers[socket.id]
+                await updateRoom(room_name, {team1_users: temp1, team2_users: temp2}, updateUsers(room_name))
+
+                delete activeUsers[socket.id]
+
+            } 
 
         }
     })
@@ -354,7 +366,7 @@ mongoose.set('strictQuery', true);
 
 //database testing stuff
 //new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000, location: {lat: 0, lng: 0}}).save()
-updateRoom('abc', {team1_users: [], team2_users: [], started: false})
+updateRoom('abc', {team1_users: [], team2_users: [], started: false, guessed: 0})
 .then(() => {
     console.log('updated db')
 })

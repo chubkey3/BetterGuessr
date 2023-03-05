@@ -4,10 +4,12 @@ import {
   StreetViewService,
   useJsApiLoader,
 } from "@react-google-maps/api";
-import React, { memo, useCallback, useState } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
+import { Socket } from "socket.io-client";
 
 interface Props {
-  center: google.maps.LatLngLiteral;
+  center: google.maps.LatLngLiteral,
+  socket: Socket
 }
 
 const containerStyle = {
@@ -61,7 +63,7 @@ function MyComponent({ center }: Props) {
 
   const testOnLoad = () => {
     const panoroma = new window.google.maps.StreetViewService();
-
+    
     panoroma.getPanorama({ location: center }, (data: any) =>
       setLocation(
         new google.maps.LatLng(

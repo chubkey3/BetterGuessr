@@ -26,9 +26,7 @@ export default function Home() {
         <link rel="icon" href="/marker.png" />
       </Head>
       <div className="main-wrapper" style={styles}>
-        <StreetView center={center} />
-        <Test center={center} setParentMarkers={setMarkers} />
-        {markers.length > 0 && <FullscreenMap markers={markers} />}
+        {/*markers.length > 0 && <FullscreenMap markers={markers} />*/}
       </div>
     </>
   );
