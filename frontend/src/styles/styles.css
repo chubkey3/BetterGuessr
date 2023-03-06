@@ -40,6 +40,16 @@
 
 }
 
+.round-countdown {
+  position: absolute;
+  top: 0;
+  background-color: black;
+  z-index: 100;
+  color: white;
+  font-size: x-large;
+  font-weight: bold;
+}
+
 button {
     font-size: 18px;
     font-weight: 700;

@@ -81,7 +81,7 @@ const getRandomLocation = () => {
 }
 
 const roundEnd = async (room_name: string) => {
-    let room = await findRoom(room_name)    
+    let room = await findRoom(room_name)
 
     if (room.team1_health <= 0){
         io.to(room_name).emit('win', {team: 'team2', users: room.team2_users})
@@ -101,9 +101,7 @@ const roundEnd = async (room_name: string) => {
         }, 5000)//time between showing guesses and displaying next round
         
     }
-
-    updateRoom(room_name, {guessed: 0, team1_guesses: [], team2_guesses: []})
-        
+    updateRoom(room_name, {guessed: 0, team1_guesses: [], team2_guesses: []})  
 }
 
 const calculatePoints = (distance: number) => {
@@ -111,7 +109,7 @@ const calculatePoints = (distance: number) => {
         return 0
     }
 
-    return (1/(2*Math.pow(10, 10))*(distance - Math.pow(10, 7))^2)
+    return 5000*Math.exp(-distance/2000)
 }
 
 const calculateHealth = async (room_name: string) => {
@@ -120,20 +118,17 @@ const calculateHealth = async (room_name: string) => {
 
     let room = await findRoom(room_name)
 
-    const team1_guesses = room.team1_guesses
-    const team2_guesses = room.team2_guesses
-
     let distance = 0
 
-    for (let i = 0; i<team1_guesses.length; i++){
-        distance = getDistance(team1_guesses[i], room.location)
+    for (let i = 0; i<room.team1_guesses.length; i++){
+        distance = getDistance(room.team1_guesses[i], room.location)
         if (distance < team1_guess){
             team1_guess = distance
         }
     }
 
-    for (let i = 0; i<team2_guesses.length; i++){
-        distance = getDistance(team2_guesses[i], room.location)
+    for (let i = 0; i<room.team2_guesses.length; i++){
+        distance = getDistance(room.team2_guesses[i], room.location)
         if (distance < team2_guess){
             team2_guess = distance
         }
@@ -144,13 +139,13 @@ const calculateHealth = async (room_name: string) => {
     } else if (team2_guess < team1_guess){
         updateRoom(room_name, {team1_health: Math.max(0, room.team1_health - (calculatePoints(team2_guess) - calculatePoints(team1_guess)))})
     }
-    
 }
 
 const io = new Server(server, { cors: {
     origin: '*'
 }});
 
+var roundCountdown: any;
 
 io.on("connection", (socket: any) => {
 
@@ -279,32 +274,37 @@ io.on("connection", (socket: any) => {
         } else {
 
             if (room.started){            
-
-                let temp: LocationData[] = []
-
-                let guessed = room.guessed + 1
-
-                if (room.team1_users.includes(req.user)){
-                    temp = room.team1_guesses
-                    temp.push({lat: req.guess.lat, lng: req.guess.lng})
-                    updateRoom(req.room, {guessed: room.guessed + 1, team1_guesses: temp})
+            
+                if (room.team1_guesses.filter(e => e.user === req.user).length > 0 || room.team2_guesses.filter(e => e.user === req.user).length > 0){
+                    socket.emit('user_guessed')
 
                 } else {
-                    temp = room.team2_guesses
-                    temp.push({lat: req.guess.lat, lng: req.guess.lng})
-                    updateRoom(req.room, {guessed: room.guessed + 1, team2_guesses: temp})
+                    let temp: LocationData[] = []
+
+                    let guessed = room.guessed + 1
+
+                    if (room.team1_users.includes(req.user)){
+                        temp = room.team1_guesses
+                        temp.push({lat: req.guess.lat, lng: req.guess.lng, user: req.user})
+                        updateRoom(req.room, {guessed: room.guessed + 1, team1_guesses: temp})
+
+                    } else {
+                        temp = room.team2_guesses
+                        temp.push({lat: req.guess.lat, lng: req.guess.lng, user: req.user})
+                        updateRoom(req.room, {guessed: room.guessed + 1, team2_guesses: temp})
+                    }            
+        
+                    if (guessed === (room.team1_users.length + room.team2_users.length) && guessed !== 1){
+                        clearInterval(roundCountdown)
+                        roundCountdown = setTimeout(() => roundEnd(req.room), 1000)
+                        io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}})
+
+                    } else if (guessed === 1){
+                        clearInterval(roundCountdown)
+                        roundCountdown = setTimeout(() => roundEnd(req.room), 1000*room.countdown_time)
+                        io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, countdown: room.countdown_time})
+                    }                          
                 }
-    
-                io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}})
-    
-                calculateHealth(req.room)//WIP
-    
-                if (guessed === (room.team1_users.length + room.team2_users.length)){
-                    roundEnd(req.room)
-                } else if (guessed === 1){
-                    //setTimeout(() => roundEnd(req.room), 1000*room.countdown_time)
-                    setTimeout(() => roundEnd(req.room), 1000)
-                }                          
                 
             } else {
                 socket.emit('room_not_started')

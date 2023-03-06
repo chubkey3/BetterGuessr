@@ -19,7 +19,8 @@ interface RoomData {
     started: boolean,
     team1_health: number,
     team2_health: number,
-    location: LocationData
+    location: LocationData,
+    countdown_time: number
 }
 
 export default RoomData

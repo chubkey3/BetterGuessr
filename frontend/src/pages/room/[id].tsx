@@ -19,8 +19,10 @@ const Room = () => {
     const [team1, setTeam1] = useState<string[]>()
     const [team2, setTeam2] = useState<string[]>()
     const [health, setHealth] = useState<{team1: number, team2: number}>()
+
     const [countdown, setCountdown] = useState<number>(0)
-    const [countdownInterval, setCountdownInterval] = useState<any>()
+    const [roundCountdown, setRoundCountdown] = useState<number>(0)
+
     const [started, toggleStarted] = useState<boolean>(false)
     const [center, setCenter] = useState<google.maps.LatLngLiteral>()
     const [markers, setMarkers] = useState([])
@@ -76,6 +78,7 @@ const Room = () => {
             setCenter(data)
             setRoundEnd(false)
             setMarkers([])
+            toggleStarted(true)
         })
 
         socket.on('round_over', (data) => {
@@ -83,21 +86,49 @@ const Room = () => {
             setRoundEnd(true)
             setHealth({team1: data.team1_health, team2: data.team2_health})
             setCountdown(5)
+            setRoundCountdown(0)
+        })
+
+        socket.on('guess', (data) => {
+            if (data.countdown){
+                setRoundCountdown(data.countdown)
+            }
+        })
+
+        socket.on('user_guessed', () => {
+            console.log('Already Guessed!')
         })
 
     }, [socket])
 
     useEffect(() => {
-        if (countdown === 5){
-            setCountdownInterval(setInterval(() => {
-                setCountdown((prevState) => prevState - 1)
-            }, 1000))
-        }
+        let countdownInterval = setInterval(() => {
 
-        if (countdown === 0){
-            clearInterval(countdownInterval)
-        }
+            if (countdown > 0){
+                setCountdown((prevState) => prevState - 1)
+            } else {
+                clearInterval(countdownInterval)
+            }
+        }, 1000)
+
+        return () => clearInterval(countdownInterval)
+
     }, [countdown])
+
+    useEffect(() => {
+       let countdownRoundInterval = setInterval(() => {
+
+            if (roundCountdown > 0){
+                setRoundCountdown((prevState) => prevState - 1)
+            } else {
+                clearInterval(countdownRoundInterval)
+            }
+
+       }, 1000)
+
+       return () => clearInterval(countdownRoundInterval)
+
+    }, [roundCountdown])
 
     const switchTeams = () => {
         socket.emit('switch_teams', {room: id, user: user})
@@ -105,7 +136,6 @@ const Room = () => {
 
     const startRoom = () => {
         socket.emit('start', {room: id})
-        toggleStarted(true)
     }
 
     return (
@@ -133,10 +163,10 @@ const Room = () => {
                     <h1>Pick Name</h1>
                     <input value={userInput} onChange={(e) => {setUserInput(e.target.value)}}/>
                     <button onClick={() => {setUser(userInput)}}>Join</button>
-        
                 </div>
                 )
                 : center && <div className="main-wrapper" style={styles}>
+                    {roundCountdown !== 0 && <h1 className="round-countdown">{roundCountdown}</h1>}
                     <StreetView key={center.lat} center={center} socket={socket}/>
                     <GuessMap key={center.lng} setParentMarkers={setMarkers} socket={socket} user={user} room={id}/>
                     {roundEnd && <FullscreenMap markers={markers} center={center} team1_health={health?.team1} team2_health={health?.team2} countdown={countdown}/>}

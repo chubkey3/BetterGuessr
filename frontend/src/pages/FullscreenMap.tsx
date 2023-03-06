@@ -69,7 +69,7 @@ function FullscreenMap({markers, center, team1_health, team2_health, countdown}:
         {markers.map((marker) => (
           <Marker key={marker.lat} animation={window.google.maps.Animation.DROP} icon={{url: "/marker.png"}} position={{ lat: marker.lat, lng: marker.lng }} />
         ))}
-        <Marker key={'location'} animation={window.google.maps.Animation.DROP} icon={{url: "/marker.png"}} position={center}/>
+        <Marker key={'location'} animation={window.google.maps.Animation.DROP} icon={{url: "/marker2.png"}} position={center}/>
         {markers.map((marker) => (
           <Polyline path={[marker, center]}/>
         ))}

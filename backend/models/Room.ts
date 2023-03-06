@@ -1,17 +1,39 @@
-const { Decimal128 } = require('mongoose')
-const Guess = require('../schemas/Guess')
 const mongoose = require('mongoose')
 
 const RoomSchema = mongoose.Schema({
     room_name: {
         type: String
     },
-    team1_guesses: {
-        type: [Guess]
-    },
-    team2_guesses: {
-        type: [Guess]
-    },
+    team1_guesses: [
+        {
+            lat: {
+                type: Number,
+                default: 0
+            },
+            lng: {
+                type: Number,
+                default: 0
+            },
+            user: {
+                type: String
+            }
+        }
+    ],
+    team2_guesses: [
+        {
+            lat: {
+                type: Number,
+                default: 0
+            },
+            lng: {
+                type: Number,
+                default: 0
+            },
+            user: {
+                type: String
+            }
+        }
+    ],
     room_id: {
         type: String
     },
@@ -42,6 +64,10 @@ const RoomSchema = mongoose.Schema({
             type: Number,
             default: 0
         }
+    },
+    countdown_time: {
+        type: Number,
+        default: 5
     }
 })
 

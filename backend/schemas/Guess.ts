@@ -1,12 +1,11 @@
-const { Decimal128 } = require('mongoose')
 const mongoose = require('mongoose')
 
 const Guess = mongoose.Schema({
     lat: {
-        type: Decimal128
+        type: Number
     },
     lng: {
-        type: Decimal128
+        type: Number
     },
     user: {
         type: String
