@@ -66,3 +66,21 @@ button {
     margin-top: 2rem;
     margin-bottom: 2rem;
 }
+
+.win-overlay {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  backdrop-filter: blur(3px);
+  background-color: rgba(0, 0, 0, 0.3);
+  font-size: 36px;
+  font-weight: bold;
+  color: white;
+}

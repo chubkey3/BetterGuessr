@@ -20,6 +20,8 @@ const Room = () => {
     const [team2, setTeam2] = useState<string[]>()
     const [health, setHealth] = useState<{team1: number, team2: number}>()
 
+    const [winteam, setWinteam] = useState<string>()
+
     const [countdown, setCountdown] = useState<number>(0)
     const [roundCountdown, setRoundCountdown] = useState<number>(0)
 
@@ -93,6 +95,14 @@ const Room = () => {
             if (data.countdown){
                 setRoundCountdown(data.countdown)
             }
+        })
+
+        socket.on('win', (data) => {
+            setWinteam(data.team)
+        })
+
+        socket.on('empty_team', () => {
+            setMessage('Empty Team(s)')
         })
 
         socket.on('user_guessed', () => {
@@ -170,6 +180,10 @@ const Room = () => {
                     <StreetView key={center.lat} center={center} socket={socket}/>
                     <GuessMap key={center.lng} setParentMarkers={setMarkers} socket={socket} user={user} room={id}/>
                     {roundEnd && <FullscreenMap markers={markers} center={center} team1_health={health?.team1} team2_health={health?.team2} countdown={countdown}/>}
+                    {winteam && <div className="win-overlay">
+                        <text>{winteam} wins! 🎉</text>
+                        <button onClick={() =>window.location.reload()}>play again</button>
+                    </div>}
                 </div>}
         </>
     )
