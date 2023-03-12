@@ -35,12 +35,15 @@
 
 .round-countdown {
   position: absolute;
-  top: 0;
-  background-color: black;
+  top: 1vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
   z-index: 100;
   color: white;
-  font-size: x-large;
+  font-size: xx-large;
   font-weight: bold;
+  padding: 10px 30px 10px 30px;
+  border-radius: 10px;
 }
 
 button {
@@ -171,4 +174,23 @@ button {
 
 button:hover {
   transform: translateY(-20%);
+}
+
+.health {
+  display: flex;
+  z-index: 100;
+  width: 95vw;
+  justify-content: space-between;
+  position: absolute;
+  top: 1vh;
+  font-size: 30px;
+  font-weight: bold;
+  color: white;
+}
+
+.health-text {
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 5px 30px 5px 30px;
+  border-radius: 15px;
+  backdrop-filter: blur(2px);
 }

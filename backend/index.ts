@@ -130,7 +130,7 @@ const roundEnd = async (room_name: string, team1_guesses: {lat: number, lng: num
         io.to(room_name).emit('round_over', {team1_guesses: room.team1_guesses, team2_guesses: room.team2_guesses, team1_health: team1_health, team2_health: team2_health, team1_distance: team1_guesses.length > 0 ? team1_guess : null, team2_distance: team2_guesses.length > 0 ? team2_guess : null})
         setTimeout(() => {
             let location = getRandomLocation()
-            io.to(room_name).emit('new_round', location)
+            io.to(room_name).emit('new_round', {location: location, team1_health: team1_health, team2_health: team2_health})
             updateRoom(room_name, {location: location})
         
         }, 5000)
@@ -190,7 +190,7 @@ io.on("connection", (socket: any) => {
                 if (room.started){
                     socket.join(req.room)
                     socket.emit('rejoin')
-                    socket.emit('new_round', room.location)
+                    socket.emit('new_round', {location: room.location, team1_health: room.team1_health, team2_health: room.team2_health})
                 } else {
                     socket.emit('user_already_joined')
                 }
@@ -262,7 +262,7 @@ io.on("connection", (socket: any) => {
                     
                         updateRoom(req.room, {started: true, location: location})
                                        
-                        io.to(req.room).emit('new_round', location)
+                        io.to(req.room).emit('new_round', {location: location, team1_health: room.team1_health, team2_health: room.team2_health})
                     } else {
                         socket.emit('empty_team')
                     }
@@ -319,7 +319,6 @@ io.on("connection", (socket: any) => {
 
                     } else if (guessed === 1){
                         clearInterval(roundCountdown)
-                        console.log(room.countdown_time)
                         roundCountdown = setTimeout(() => roundEnd(req.room, team1_guesses, team2_guesses), 1000*room.countdown_time)
                         io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, countdown: room.countdown_time})
                     }                          
@@ -331,11 +330,6 @@ io.on("connection", (socket: any) => {
         } 
         
     })
-
-    socket.on("new_room", () => {
-      
-    })
-
 
     socket.on("disconnect", async () => {
 

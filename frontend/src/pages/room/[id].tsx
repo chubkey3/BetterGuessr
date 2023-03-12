@@ -91,10 +91,11 @@ const Room = () => {
             })
 
             socket.on('new_round', (data) => {
-                setCenter(data)
+                setCenter(data.location)
                 setRoundEnd(false)
                 setMarkers([])
                 toggleStarted(true)
+                setHealth({team1: data.team1_health, team2: data.team2_health})
             })
 
             socket.on('round_over', (data) => {
@@ -207,7 +208,7 @@ const Room = () => {
                 </div> : 
                 <div className="register">
                     <h1>Pick Name</h1>
-                    <input className="user-input" value={userInput} onChange={(e) => {setUserInput(e.target.value)}} onKeyDown={(e) => {
+                    <input autoFocus className="user-input" value={userInput} onChange={(e) => {setUserInput(e.target.value)}} onKeyDown={(e) => {
                         if (e.key === 'Enter'){
                             setUser(userInput)
                         }
@@ -217,6 +218,10 @@ const Room = () => {
                 )
                 : center && <div className="main-wrapper" style={styles}>
                     {roundCountdown !== 0 && <h1 className="round-countdown">{roundCountdown}</h1>}
+                    {!roundEnd && <div className="health">
+                        <h1 className="health-text">{health?.team1}</h1>
+                        <h1 className="health-text">{health?.team2}</h1>
+                    </div>}
                     <StreetView key={center.lat} center={center} socket={socket}/>
                     <GuessMap key={center.lng} setParentMarkers={setMarkers} socket={socket} user={user} room={id}/>
                     {roundEnd && <FullscreenMap markers={markers} center={center} team1_health={health?.team1} team2_health={health?.team2} team1_distance={team1distance} team2_distance={team2distance} countdown={countdown}/>}
