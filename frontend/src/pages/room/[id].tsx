@@ -41,15 +41,24 @@ const Room = () => {
     }, [router.query.user])
 
     useEffect(() => {
+        let user = sessionStorage.getItem('user')
+        if (user){
+            setUser(user)
+        }
+    }, [])
+
+    useEffect(() => {
+        if (user){
+            sessionStorage.setItem('user', user)
+        }
+    }, [user])
+
+    useEffect(() => {
         if (id && user){
             socket.emit('join', {room: id, user: user})
         }
 
     }, [id, user])
-
-    useEffect(() => {
-        console.log(user)
-    }, [user])
 
     useEffect(() => {
 
@@ -68,7 +77,6 @@ const Room = () => {
             })
 
             socket.on('rejoin', () => {
-                //in future check if user is in the game
                 toggleStarted(true)
             })
 
@@ -79,8 +87,6 @@ const Room = () => {
             socket.on('room', (data) => {
                 setTeam1(data["team1"])
                 setTeam2(data["team2"])
-                //setTeam1(JSON.stringify(data["team1"]))
-                //setTeam2(JSON.stringify(data["team2"]))
                 setMessage("Connected")
             })
 
@@ -129,7 +135,7 @@ const Room = () => {
             })
         }
 
-    }, [socket, user])
+    }, [user])
 
     useEffect(() => {
         let countdownInterval = setInterval(() => {
@@ -184,17 +190,15 @@ const Room = () => {
                 {(message === 'Connected') ? <h1 className="good_message">Status: {message}</h1> : <h1 className="bad_message">Status: {message}</h1>}
                 <div className="teams-container">
                 <div className="team-container">      
-                    <h1>Team 1</h1>  
-                    
+                    <h1>Team 1</h1>        
                     {team1?.map((user) => (
-                        <h2>{user}</h2>
+                        <h2 key={user}>{user}</h2>
                     ))}
                     </div>
                     <div className="team-container">        
                     <h1>Team 2</h1>
-                    
                     {team2?.map((user) => (
-                        <h2>{user}</h2>
+                        <h2 key={user}>{user}</h2>
                     ))}
                     </div>
                 </div>

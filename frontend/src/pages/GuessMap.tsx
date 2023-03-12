@@ -16,16 +16,6 @@ const mapOptions = {
   minZoom: 1
 }
 
-/*
-const mapStyles = {
-  width: '20vw',
-  height: '10vw',
-  zIndex: '5',
-  borderRadius: '5px',
-  opacity: 0.5
-}
-*/
-
 const mapStyles = {
   width: '25vw',
   height: '25vw',
@@ -50,7 +40,7 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
         return prevMarkers.concat(data.guess)
       })      
     })
-  }, [])
+  }, [setParentMarkers, socket])
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -86,7 +76,7 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
         mapContainerClassName={'guess-map'}
       >
         {markers.map((marker) => (
-          <Marker animation={window.google.maps.Animation.DROP} icon={{url: "/marker.png"}} position={{ lat: marker.lat, lng: marker.lng }} />
+          <Marker key={marker.lat} animation={window.google.maps.Animation.DROP} icon={{url: "/marker.png"}} position={{ lat: marker.lat, lng: marker.lng }} />
         ))}
       </GoogleMap>
       <button>{(markers.length === 0) ? 'Place your pin to guess' : 'Guess'}</button>

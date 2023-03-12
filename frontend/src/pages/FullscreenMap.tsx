@@ -21,7 +21,8 @@ const containerStyle = {
 const mapOptions = {
     fullscreenControl: false,
     mapTypeControl: false,
-    streetViewControl: false
+    streetViewControl: false,
+    minZoom: 2
   }
 
 
@@ -46,7 +47,7 @@ function FullscreenMap({markers, center, team1_health, team2_health, team1_dista
 
     }
     
-  }, [map, markers])
+  }, [map, markers, isLoaded, center])
 
   const onLoad = useCallback(function callback(map: google.maps.Map) {
     map.setZoom(1)
@@ -73,7 +74,7 @@ function FullscreenMap({markers, center, team1_health, team2_health, team1_dista
         ))}
         <Marker key={'location'} animation={window.google.maps.Animation.DROP} icon={{url: "/marker2.png"}} position={center}/>
         {markers.map((marker) => (
-          <Polyline path={[marker, center]}/>
+          <Polyline key={marker.lat} path={[marker, center]}/>
         ))}
         <></>
       </GoogleMap>

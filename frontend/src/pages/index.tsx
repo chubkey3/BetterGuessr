@@ -25,9 +25,8 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/marker.png" />
       </Head>
-      <div className="main-wrapper" style={styles}>
-        {/*markers.length > 0 && <FullscreenMap markers={markers} />*/}
-      </div>
+      <h1>BetterGuessr</h1>
+      <h2>Go to /room/abc to play!</h2>
     </>
   );
 }

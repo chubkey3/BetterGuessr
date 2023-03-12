@@ -67,7 +67,7 @@ const RoomSchema = mongoose.Schema({
     },
     countdown_time: {
         type: Number,
-        default: 5
+        default: 15
     }
 })
 

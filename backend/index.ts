@@ -118,13 +118,13 @@ const roundEnd = async (room_name: string, team1_guesses: {lat: number, lng: num
         team1_health = 5000
         team2_health = 5000
         io.to(room_name).emit('win', {team: 'team2', users: room.team2_users})
-        updateRoom(room_name, {started: false})
+        updateRoom(room_name, {started: false, location: {lat: 0, lng: 0}})
 
     } else if (team2_health <= 0){
         team1_health = 5000
         team2_health = 5000
         io.to(room_name).emit('win', {team: 'team1', users: room.team1_users})
-        updateRoom(room_name, {started: false})
+        updateRoom(room_name, {started: false, location: {lat: 0, lng: 0}})
     
     } else {
         io.to(room_name).emit('round_over', {team1_guesses: room.team1_guesses, team2_guesses: room.team2_guesses, team1_health: team1_health, team2_health: team2_health, team1_distance: team1_guesses.length > 0 ? team1_guess : null, team2_distance: team2_guesses.length > 0 ? team2_guess : null})
@@ -319,6 +319,7 @@ io.on("connection", (socket: any) => {
 
                     } else if (guessed === 1){
                         clearInterval(roundCountdown)
+                        console.log(room.countdown_time)
                         roundCountdown = setTimeout(() => roundEnd(req.room, team1_guesses, team2_guesses), 1000*room.countdown_time)
                         io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, countdown: room.countdown_time})
                     }                          
@@ -382,9 +383,8 @@ mongoose.connect(process.env.MONGO_URL, {dbName: 'betterguessr'})
 
 mongoose.set('strictQuery', true);
 
-//database testing stuff
 //new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000, location: {lat: 0, lng: 0}}).save()
-updateRoom('abc', {team1_users: [], team2_users: [], started: false, guessed: 0, team1_health: 5000, team2_health: 5000})
+updateRoom('abc', {team1_users: [], team2_users: [], started: false, guessed: 0, team1_health: 5000, team2_health: 5000, countdown_time: 5})
 .then(() => {
     console.log('updated db')
 })

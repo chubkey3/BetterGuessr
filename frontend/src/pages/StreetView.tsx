@@ -4,7 +4,7 @@ import {
   StreetViewService,
   useJsApiLoader,
 } from "@react-google-maps/api";
-import React, { memo, useCallback, useEffect, useState } from "react";
+import React, { memo, useCallback, useState } from "react";
 import { Socket } from "socket.io-client";
 
 interface Props {
@@ -50,12 +50,12 @@ function MyComponent({ center }: Props) {
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const onLoad = useCallback(function callback(map: google.maps.Map) {
-    // This is just an example of getting and using the map instance!!! don't just blindly copy!
-    const bounds = new window.google.maps.LatLngBounds(center);
-    map.fitBounds(bounds);
-
+    if (center){
+      const bounds = new window.google.maps.LatLngBounds(center);
+      map.fitBounds(bounds);
+    }
     setMap(map);
-  }, []);
+  }, [center]);
 
   const onUnmount = useCallback(function callback(map: google.maps.Map) {
     setMap(null);
