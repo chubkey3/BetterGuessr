@@ -80,7 +80,7 @@ const getRandomLocation = () => {
     return data[Math.floor(Math.random()*data.length)]
 }
 
-const roundEnd = async (room_name: string) => {
+const roundEnd = async (room_name: string, team1_guesses: {lat: number, lng: number, user: string}[], team2_guesses: {lat: number, lng: number, user: string}[]) => {
     let room = await findRoom(room_name)
 
     //calculate health
@@ -92,15 +92,15 @@ const roundEnd = async (room_name: string) => {
     
     var distance;
 
-    for (let i = 0; i<room.team1_guesses.length; i++){
-        distance = getDistance(room.team1_guesses[i], room.location)
+    for (let i = 0; i<team1_guesses.length; i++){
+        distance = getDistance(team1_guesses[i], room.location)
         if (distance < team1_guess){
             team1_guess = distance
         }
     }
 
-    for (let i = 0; i<room.team2_guesses.length; i++){
-        distance = getDistance(room.team2_guesses[i], room.location)
+    for (let i = 0; i<team2_guesses.length; i++){
+        distance = getDistance(team2_guesses[i], room.location)
         if (distance < team2_guess){
             team2_guess = distance
         }
@@ -111,8 +111,6 @@ const roundEnd = async (room_name: string) => {
     } else if (team2_guess < team1_guess){
         team1_health = Math.ceil(Math.max(0, room.team1_health - (calculatePoints(team2_guess/1000) - calculatePoints(team1_guess/1000))))
     }
-
-    console.log(calculatePoints(team1_guess/1000), calculatePoints(team2_guess/1000))
 
     //win condition
     if (team1_health <= 0){
@@ -128,7 +126,7 @@ const roundEnd = async (room_name: string) => {
         updateRoom(room_name, {started: false})
     
     } else {
-        io.to(room_name).emit('round_over', {team1_guesses: room.team1_guesses, team2_guesses: room.team2_guesses, team1_health: team1_health, team2_health: team2_health, team1_distance: 1, team2_distance: 2})
+        io.to(room_name).emit('round_over', {team1_guesses: room.team1_guesses, team2_guesses: room.team2_guesses, team1_health: team1_health, team2_health: team2_health, team1_distance: team1_guesses.length > 0 ? team1_guess : null, team2_distance: team2_guesses.length > 0 ? team2_guess : null})
         setTimeout(() => {
             let location = getRandomLocation()
             io.to(room_name).emit('new_round', location)
@@ -149,34 +147,6 @@ const calculatePoints = (distance: number) => {
     return 5000*Math.exp(-distance/2000)
 }
 
-const calculateHealth = async (room_name: string) => {
-    let team1_guess = 99999999999
-    let team2_guess = 99999999999
-
-    let room = await findRoom(room_name)
-
-    let distance = 0
-
-    for (let i = 0; i<room.team1_guesses.length; i++){
-        distance = getDistance(room.team1_guesses[i], room.location)
-        if (distance < team1_guess){
-            team1_guess = distance
-        }
-    }
-
-    for (let i = 0; i<room.team2_guesses.length; i++){
-        distance = getDistance(room.team2_guesses[i], room.location)
-        if (distance < team2_guess){
-            team2_guess = distance
-        }
-    }
-
-    if (team1_guess < team2_guess){
-        updateRoom(room_name, {team2_health: Math.max(0, room.team2_health - (calculatePoints(team1_guess) - calculatePoints(team2_guess)))})
-    } else if (team2_guess < team1_guess){
-        updateRoom(room_name, {team1_health: Math.max(0, room.team1_health - (calculatePoints(team2_guess) - calculatePoints(team1_guess)))})
-    }
-}
 
 const io = new Server(server, { cors: {
     origin: '*'
@@ -323,27 +293,32 @@ io.on("connection", (socket: any) => {
                 } else {
                     let temp: LocationData[] = []
 
+                    let team1_guesses = room.team1_guesses
+                    let team2_guesses = room.team2_guesses
+
                     let guessed = room.guessed + 1
 
                     if (room.team1_users.includes(req.user)){
                         temp = room.team1_guesses
                         temp.push({lat: req.guess.lat, lng: req.guess.lng, user: req.user})
+                        team1_guesses.push({lat: req.guess.lat, lng: req.guess.lng, user: req.user})
                         updateRoom(req.room, {guessed: room.guessed + 1, team1_guesses: temp})
 
                     } else {
                         temp = room.team2_guesses
                         temp.push({lat: req.guess.lat, lng: req.guess.lng, user: req.user})
+                        team2_guesses.push({lat: req.guess.lat, lng: req.guess.lng, user: req.user})
                         updateRoom(req.room, {guessed: room.guessed + 1, team2_guesses: temp})
                     }            
         
                     if (guessed === (room.team1_users.length + room.team2_users.length) && guessed !== 1){
                         clearInterval(roundCountdown)
-                        roundCountdown = setTimeout(() => roundEnd(req.room), 1000)
+                        roundEnd(req.room, team1_guesses, team2_guesses)
                         io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}})
 
                     } else if (guessed === 1){
                         clearInterval(roundCountdown)
-                        roundCountdown = setTimeout(() => roundEnd(req.room), 1000*room.countdown_time)
+                        roundCountdown = setTimeout(() => roundEnd(req.room, team1_guesses, team2_guesses), 1000*room.countdown_time)
                         io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, countdown: room.countdown_time})
                     }                          
                 }
@@ -408,7 +383,7 @@ mongoose.set('strictQuery', true);
 
 //database testing stuff
 //new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000, location: {lat: 0, lng: 0}}).save()
-updateRoom('abc', {team1_users: [], team2_users: [], started: false, guessed: 0, team1_health: 1, team2_health: 1})
+updateRoom('abc', {team1_users: [], team2_users: [], started: false, guessed: 0, team1_health: 5000, team2_health: 5000})
 .then(() => {
     console.log('updated db')
 })

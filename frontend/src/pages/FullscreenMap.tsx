@@ -7,6 +7,8 @@ interface Props {
   center: google.maps.LatLngLiteral,
   team1_health?: number,
   team2_health?: number,
+  team1_distance?: number,
+  team2_distance?: number,
   countdown: number
 }
 
@@ -24,7 +26,7 @@ const mapOptions = {
 
 
 
-function FullscreenMap({markers, center, team1_health, team2_health, countdown}: Props) {
+function FullscreenMap({markers, center, team1_health, team2_health, team1_distance, team2_distance, countdown}: Props) {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: "AIzaSyAa8AwVw9QKRS5AyGTih-iqcXgJ0ImcJ7o"
@@ -75,9 +77,15 @@ function FullscreenMap({markers, center, team1_health, team2_health, countdown}:
         ))}
         <></>
       </GoogleMap>
-      <div>
-        {team1_health && <h1>{team1_health}</h1>}
-        {team2_health && <h1>{team2_health}</h1>}
+      <div className='health-display'>
+        <div className='health-display-container'>
+          {team1_health && <h1>Team 1: {team1_health}</h1>}
+          {team1_distance && <h2>{(team1_distance >= 1000) ? Math.ceil(team1_distance/1000) + ' km' : Math.ceil(team1_distance) + ' m'}</h2>}
+        </div>
+        <div className='health-display-container'>
+          {team2_health && <h1>Team 2: {team2_health}</h1>}
+          {team2_distance && <h2>{(team2_distance >= 1000) ? Math.ceil(team2_distance/1000) + ' km' : Math.ceil(team2_distance) + ' m'}</h2>}
+        </div>
       </div>
       <h1>{`New Round in ${countdown}`}</h1>
     </div>

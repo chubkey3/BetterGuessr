@@ -84,3 +84,18 @@ button {
   font-weight: bold;
   color: white;
 }
+
+.health-display {
+  display: flex;
+  width: 45vw;
+  justify-content: space-between;
+  margin-top: 3vh;
+  margin-bottom: 5vh;
+}
+
+.health-display.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 30px;
+}

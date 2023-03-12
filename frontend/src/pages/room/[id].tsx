@@ -16,11 +16,13 @@ const Room = () => {
 
     const [message, setMessage] = useState("Not Connected")
 
+    //game variables
     const [team1, setTeam1] = useState<string[]>()
     const [team2, setTeam2] = useState<string[]>()
     const [health, setHealth] = useState<{team1: number, team2: number}>()
-
-    const [winteam, setWinteam] = useState<string>()
+    const [win, setWin] = useState<string>()
+    const [team1distance, setTeam1Distance] = useState<number>()
+    const [team2distance, setTeam2Distance] = useState<number>()
 
     const [countdown, setCountdown] = useState<number>(0)
     const [roundCountdown, setRoundCountdown] = useState<number>(0)
@@ -46,70 +48,88 @@ const Room = () => {
     }, [id, user])
 
     useEffect(() => {
+        console.log(user)
+    }, [user])
 
-        socket.on('room_not_found', () => {
-            setMessage('Room not Found')
-        })
+    useEffect(() => {
 
-        socket.on('invalid_payload', () => {
-            setMessage('An Error Occurred Connecting to Room')
-        })
+        if (user){
 
-        socket.on('user_already_joined', () => {
-            setMessage('Already Joined')
-        })
+            socket.on('room_not_found', () => {
+                setMessage('Room not Found')
+            })
 
-        socket.on('rejoin', () => {
-            //in future check if user is in the game
-            toggleStarted(true)
-        })
+            socket.on('invalid_payload', () => {
+                setMessage('An Error Occurred Connecting to Room')
+            })
 
-        socket.on('room_started', () => {
-            setMessage('Room Started')
-        })
+            socket.on('user_already_joined', () => {
+                setMessage('Already Joined')
+            })
 
-        socket.on('room', (data) => {
-            setTeam1(data["team1"])
-            setTeam2(data["team2"])
-            //setTeam1(JSON.stringify(data["team1"]))
-            //setTeam2(JSON.stringify(data["team2"]))
-            setMessage("Connected")
-        })
+            socket.on('rejoin', () => {
+                //in future check if user is in the game
+                toggleStarted(true)
+            })
 
-        socket.on('new_round', (data) => {
-            setCenter(data)
-            setRoundEnd(false)
-            setMarkers([])
-            toggleStarted(true)
-        })
+            socket.on('room_started', () => {
+                setMessage('Room Started')
+            })
 
-        socket.on('round_over', (data) => {
+            socket.on('room', (data) => {
+                setTeam1(data["team1"])
+                setTeam2(data["team2"])
+                //setTeam1(JSON.stringify(data["team1"]))
+                //setTeam2(JSON.stringify(data["team2"]))
+                setMessage("Connected")
+            })
 
-            setRoundEnd(true)
-            setHealth({team1: data.team1_health, team2: data.team2_health})
-            setCountdown(5)
-            setRoundCountdown(0)
-        })
+            socket.on('new_round', (data) => {
+                setCenter(data)
+                setRoundEnd(false)
+                setMarkers([])
+                toggleStarted(true)
+            })
 
-        socket.on('guess', (data) => {
-            if (data.countdown){
-                setRoundCountdown(data.countdown)
-            }
-        })
+            socket.on('round_over', (data) => {
 
-        socket.on('win', (data) => {
-            setWinteam(data.team)
-        })
+                setRoundEnd(true)
+                setHealth({team1: data.team1_health, team2: data.team2_health})
+                setCountdown(5)
+                setRoundCountdown(0)
+                
+                setTeam1Distance(data.team1_distance)
+                
+                setTeam2Distance(data.team2_distance)
+            })
 
-        socket.on('empty_team', () => {
-            setMessage('Empty Team(s)')
-        })
+            socket.on('guess', (data) => {
+                if (data.countdown){
+                    setRoundCountdown(data.countdown)
+                }
+            })
 
-        socket.on('user_guessed', () => {
-            console.log('Already Guessed!')
-        })
+            socket.on('win', (data) => {
+                if (data.users.includes(user)){
+                    setWin('You Win! 🎉')
+                } else {
+                    setWin('You Lost! 😥')
+                }
 
-    }, [socket])
+                setCountdown(0)
+                setRoundCountdown(0)
+            })
+
+            socket.on('empty_team', () => {
+                setMessage('Empty Team(s)')
+            })
+
+            socket.on('user_guessed', () => {
+                console.log('Already Guessed!')
+            })
+        }
+
+    }, [socket, user])
 
     useEffect(() => {
         let countdownInterval = setInterval(() => {
@@ -179,9 +199,9 @@ const Room = () => {
                     {roundCountdown !== 0 && <h1 className="round-countdown">{roundCountdown}</h1>}
                     <StreetView key={center.lat} center={center} socket={socket}/>
                     <GuessMap key={center.lng} setParentMarkers={setMarkers} socket={socket} user={user} room={id}/>
-                    {roundEnd && <FullscreenMap markers={markers} center={center} team1_health={health?.team1} team2_health={health?.team2} countdown={countdown}/>}
-                    {winteam && <div className="win-overlay">
-                        <text>{winteam} wins! 🎉</text>
+                    {roundEnd && <FullscreenMap markers={markers} center={center} team1_health={health?.team1} team2_health={health?.team2} team1_distance={team1distance} team2_distance={team2distance} countdown={countdown}/>}
+                    {win && <div className="win-overlay">
+                        <text>{win}</text>
                         <button onClick={() =>window.location.reload()}>play again</button>
                     </div>}
                 </div>}
