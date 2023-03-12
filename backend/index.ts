@@ -3,6 +3,7 @@ const { randomUUID } = require('crypto')
 const {Server} = require('socket.io')
 const mongoose = require('mongoose')
 const compression = require('compression')
+const cors = require('cors')
 
 require('dotenv').config()
 
@@ -392,12 +393,13 @@ updateRoom('abc', {team1_users: [], team2_users: [], started: false, guessed: 0,
 //middleware
 app.use(compression())
 app.use(express.json())
+app.use(cors())
 
-app.get('/', (res: any) => {
+app.get('/', (req:any, res: any) => {
     res.send('Betterguessr backend service.')
 })
 
-app.get('/join', (res: any) => {
+app.get('/join', (req: any, res: any) => {
     res.send(randomUUID())
 })
 

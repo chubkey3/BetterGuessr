@@ -11,7 +11,7 @@ const socket = io('http://localhost:3002')
 
 const Room = () => {
     const router = useRouter();
-    //
+    
     const { id } = router.query    
 
     const [message, setMessage] = useState("Not Connected")
@@ -176,22 +176,38 @@ const Room = () => {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/marker.png" />
             </Head>
-            {!started ? (user ? <div>
-                {message}
-                <button onClick={switchTeams}>switch team</button>
-                <h1>Team 1</h1>        
-                {team1?.map((user) => (
-                    <h2>{user}</h2>
-                ))}
-                <h1>Team 2</h1>        
-                {team2?.map((user) => (
-                    <h2>{user}</h2>
-                ))}
-                <button onClick={startRoom}>Start</button>
+            {!started ? (user ? <div className="lobby">
+                <div className="heading">
+                    <h1 className="title">BetterGuessr</h1>
+                    <img src="/marker.png"/>
+                </div>
+                {(message === 'Connected') ? <h1 className="good_message">Status: {message}</h1> : <h1 className="bad_message">Status: {message}</h1>}
+                <div className="teams-container">
+                <div className="team-container">      
+                    <h1>Team 1</h1>  
+                    
+                    {team1?.map((user) => (
+                        <h2>{user}</h2>
+                    ))}
+                    </div>
+                    <div className="team-container">        
+                    <h1>Team 2</h1>
+                    
+                    {team2?.map((user) => (
+                        <h2>{user}</h2>
+                    ))}
+                    </div>
+                </div>
+                <button onClick={switchTeams} className={'switch-teams-button'}>switch team</button>
+                <button onClick={startRoom} className={'btn btn-white btn-animate'}>Start</button>
                 </div> : 
-                <div>
+                <div className="register">
                     <h1>Pick Name</h1>
-                    <input value={userInput} onChange={(e) => {setUserInput(e.target.value)}}/>
+                    <input className="user-input" value={userInput} onChange={(e) => {setUserInput(e.target.value)}} onKeyDown={(e) => {
+                        if (e.key === 'Enter'){
+                            setUser(userInput)
+                        }
+                    }}/>
                     <button onClick={() => {setUser(userInput)}}>Join</button>
                 </div>
                 )
