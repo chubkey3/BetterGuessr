@@ -11,3 +11,4 @@ todo
 -multiplier
 -tweak game settings
 -move marker before submitting it
+-hover map enlarge
