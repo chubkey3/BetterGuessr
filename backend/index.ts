@@ -315,12 +315,21 @@ io.on("connection", (socket: any) => {
                     if (guessed === (room.team1_users.length + room.team2_users.length) && guessed !== 1){
                         clearInterval(roundCountdown)
                         roundEnd(req.room, team1_guesses, team2_guesses)
-                        io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}})
+                        if (room.team1_users.includes(req.user)){
+                            io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, team: room.team1_users})
+                        } else {
+                            io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, team: room.team2_users})
+                        }
+                        
 
                     } else if (guessed === 1){
                         clearInterval(roundCountdown)
                         roundCountdown = setTimeout(() => roundEnd(req.room, team1_guesses, team2_guesses), 1000*room.countdown_time)
-                        io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, countdown: room.countdown_time})
+                        if (room.team1_users.includes(req.user)){
+                            io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, countdown: room.countdown_time, team: room.team1_users})
+                        } else {
+                            io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, countdown: room.countdown_time, team: room.team2_users})
+                        }
                     }                          
                 }
                 

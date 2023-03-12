@@ -33,7 +33,10 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
   useEffect(() => {
     socket.on("guess", (data) => {
       setMarkers((prevMarkers) => {
-        return prevMarkers.concat(data.guess)
+        if (data.team.includes(user)){
+          return prevMarkers.concat(data.guess)
+        }
+        return prevMarkers
       })
 
       setParentMarkers((prevMarkers: any) => {
