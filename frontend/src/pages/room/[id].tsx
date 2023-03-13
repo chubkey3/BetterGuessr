@@ -8,9 +8,6 @@ import styles from "@/styles/Home.module.css";
 import Head from "next/head";
 
 
-// const socket = io('http://localhost:3002')
-
-
 const Room = () => {
     const router = useRouter();
     console.log(process.env.PROD)
