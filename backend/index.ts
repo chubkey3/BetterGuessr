@@ -336,7 +336,7 @@ io.on("connection", (socket: any) => {
                         } else {
                             io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, team: room.team2_users})
                         }
-                    }                              
+                    }                                                   
                 }
                 
             } else {
