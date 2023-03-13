@@ -330,7 +330,13 @@ io.on("connection", (socket: any) => {
                         } else {
                             io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, countdown: room.countdown_time, team: room.team2_users})
                         }
-                    }                          
+                    } else {
+                        if (room.team1_users.includes(req.user)){
+                            io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, team: room.team1_users})
+                        } else {
+                            io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, team: room.team2_users})
+                        }
+                    }                        
                 }
                 
             } else {
