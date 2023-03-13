@@ -10,7 +10,6 @@ import Head from "next/head";
 
 const Room = () => {
     const router = useRouter();
-    console.log(process.env.PROD)
     const socket = useMemo(() => io(process.env.PROD == 'true' ? "https://socketbetterguessr.flatypus.me" : "http://localhost:13242"), [])
 
     const { id } = router.query
