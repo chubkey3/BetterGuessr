@@ -386,12 +386,13 @@ mongoose.connect(process.env.MONGO_URL, {dbName: 'betterguessr'})
 
 mongoose.set('strictQuery', true);
 
-//new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000, location: {lat: 0, lng: 0}}).save()
-updateRoom('abc', {team1_users: [], team2_users: [], started: false, guessed: 0, team1_health: 5000, team2_health: 5000, countdown_time: 5})
-.then(() => {
-    console.log('updated db')
-})
-
+if (process.env.PROD === 'production'){
+    //new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000, location: {lat: 0, lng: 0}}).save()
+    updateRoom('abc', {team1_users: [], team2_users: [], started: false, guessed: 0, team1_health: 5000, team2_health: 5000, countdown_time: 5})
+    .then(() => {
+        console.log('updated db')
+    })
+}
 
 //middleware
 app.use(compression())
@@ -406,10 +407,12 @@ app.get('/join', (req: any, res: any) => {
     res.send(randomUUID())
 })
 
-app.listen(3001, () => {
-    console.log('Server running on port 3001')
+/*
+app.listen(process.env.EXPRESS_PORT || 3001, () => {
+    console.log('Server running on port ' + process.env.EXPRESS_PORT)
 })
+*/
 
-server.listen(3002, () => {
-    console.log('Socket running on port 3002')
+server.listen(process.env.SOCKET_IO_PORT || 3002, () => {
+    console.log('Socket running on port ' + process.env.SOCKET_IO_PORT)
 })
