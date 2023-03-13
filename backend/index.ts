@@ -189,7 +189,7 @@ io.on("connection", (socket: any) => {
 
                 if (room.started){
                     socket.join(req.room)
-                    socket.emit('rejoin')
+                    socket.emit('rejoin', {team1_users: room.team1_users, team2_users: room.team2_users})
                     socket.emit('new_round', {location: room.location, team1_health: room.team1_health, team2_health: room.team2_health})
                 } else {
                     socket.emit('user_already_joined')
@@ -387,7 +387,7 @@ mongoose.connect(process.env.MONGO_URL, {dbName: 'betterguessr'})
 mongoose.set('strictQuery', true);
 
 //new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000, location: {lat: 0, lng: 0}}).save()
-updateRoom('abc', {team1_users: [], team2_users: [], started: false, guessed: 0, team1_health: 5000, team2_health: 5000, countdown_time: 5})
+updateRoom('abc', {team1_users: [], team2_users: [], started: false, guessed: 0, team1_health: 5000, team2_health: 5000, countdown_time: 15})
 .then(() => {
     console.log('updated db')
 })

@@ -76,8 +76,10 @@ const Room = () => {
                 setMessage('Already Joined')
             })
 
-            socket.on('rejoin', () => {
+            socket.on('rejoin', (data) => {
                 toggleStarted(true)
+                setTeam1(data.team1_users)
+                setTeam2(data.team2_users)
             })
 
             socket.on('room_started', () => {
@@ -219,8 +221,18 @@ const Room = () => {
                 : center && <div className="main-wrapper" style={styles}>
                     {roundCountdown !== 0 && <h1 className="round-countdown">{roundCountdown}</h1>}
                     {!roundEnd && <div className="health">
-                        <h1 className="health-text">{health?.team1}</h1>
-                        <h1 className="health-text">{health?.team2}</h1>
+                        <div>
+                            <h1 className="health-text">{health?.team1}</h1>
+                            {team1?.map((user) => (
+                                <h1 key={user}>{user}</h1>
+                            ))}
+                        </div>
+                        <div>
+                            <h1 className="health-text">{health?.team2}</h1>
+                            {team2?.map((user) => (
+                                <h1 key={user}>{user}</h1>
+                            ))}
+                        </div>
                     </div>}
                     <StreetView key={center.lat} center={center} socket={socket}/>
                     <GuessMap key={center.lng} setParentMarkers={setMarkers} socket={socket} user={user} room={id}/>
