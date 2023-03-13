@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { io } from 'socket.io-client'
 import FullscreenMap from "../FullscreenMap";
 import StreetView from "../StreetView";
@@ -7,19 +7,23 @@ import GuessMap from '../GuessMap'
 import styles from "@/styles/Home.module.css";
 import Head from "next/head";
 
-const socket = io('http://localhost:3002')
+
+// const socket = io('http://localhost:3002')
+
 
 const Room = () => {
     const router = useRouter();
-    
-    const { id } = router.query    
+    console.log(process.env.PROD)
+    const socket = useMemo(() => io(process.env.PROD == 'true' ? "https://socketbetterguessr.flatypus.me" : "http://localhost:13242"), [])
+
+    const { id } = router.query
 
     const [message, setMessage] = useState("Not Connected")
 
     //game variables
     const [team1, setTeam1] = useState<string[]>()
     const [team2, setTeam2] = useState<string[]>()
-    const [health, setHealth] = useState<{team1: number, team2: number}>()
+    const [health, setHealth] = useState<{ team1: number, team2: number }>()
     const [win, setWin] = useState<string>()
     const [team1distance, setTeam1Distance] = useState<number>()
     const [team2distance, setTeam2Distance] = useState<number>()
@@ -35,34 +39,34 @@ const Room = () => {
     const [roundEnd, setRoundEnd] = useState<boolean>(false)
 
     useEffect(() => {
-        if (router.query.user && typeof router.query.user === 'string'){
+        if (router.query.user && typeof router.query.user === 'string') {
             setUser(router.query.user)
         }
     }, [router.query.user])
 
     useEffect(() => {
         let user = sessionStorage.getItem('user')
-        if (user){
+        if (user) {
             setUser(user)
         }
     }, [])
 
     useEffect(() => {
-        if (user){
+        if (user) {
             sessionStorage.setItem('user', user)
         }
     }, [user])
 
     useEffect(() => {
-        if (id && user){
-            socket.emit('join', {room: id, user: user})
+        if (id && user) {
+            socket.emit('join', { room: id, user: user })
         }
 
     }, [id, user])
 
     useEffect(() => {
 
-        if (user){
+        if (user) {
 
             socket.on('room_not_found', () => {
                 setMessage('Room not Found')
@@ -95,29 +99,29 @@ const Room = () => {
                 setRoundEnd(false)
                 setMarkers([])
                 toggleStarted(true)
-                setHealth({team1: data.team1_health, team2: data.team2_health})
+                setHealth({ team1: data.team1_health, team2: data.team2_health })
             })
 
             socket.on('round_over', (data) => {
 
                 setRoundEnd(true)
-                setHealth({team1: data.team1_health, team2: data.team2_health})
+                setHealth({ team1: data.team1_health, team2: data.team2_health })
                 setCountdown(5)
                 setRoundCountdown(0)
-                
+
                 setTeam1Distance(data.team1_distance)
-                
+
                 setTeam2Distance(data.team2_distance)
             })
 
             socket.on('guess', (data) => {
-                if (data.countdown){
+                if (data.countdown) {
                     setRoundCountdown(data.countdown)
                 }
             })
 
             socket.on('win', (data) => {
-                if (data.users.includes(user)){
+                if (data.users.includes(user)) {
                     setWin('You Win! 🎉')
                 } else {
                     setWin('You Lost! 😥')
@@ -125,6 +129,8 @@ const Room = () => {
 
                 setCountdown(0)
                 setRoundCountdown(0)
+
+                socket.disconnect()
             })
 
             socket.on('empty_team', () => {
@@ -141,7 +147,7 @@ const Room = () => {
     useEffect(() => {
         let countdownInterval = setInterval(() => {
 
-            if (countdown > 0){
+            if (countdown > 0) {
                 setCountdown((prevState) => prevState - 1)
             } else {
                 clearInterval(countdownInterval)
@@ -153,26 +159,26 @@ const Room = () => {
     }, [countdown])
 
     useEffect(() => {
-       let countdownRoundInterval = setInterval(() => {
+        let countdownRoundInterval = setInterval(() => {
 
-            if (roundCountdown > 0){
+            if (roundCountdown > 0) {
                 setRoundCountdown((prevState) => prevState - 1)
             } else {
                 clearInterval(countdownRoundInterval)
             }
 
-       }, 1000)
+        }, 1000)
 
-       return () => clearInterval(countdownRoundInterval)
+        return () => clearInterval(countdownRoundInterval)
 
     }, [roundCountdown])
 
     const switchTeams = () => {
-        socket.emit('switch_teams', {room: id, user: user})
+        socket.emit('switch_teams', { room: id, user: user })
     }
 
     const startRoom = () => {
-        socket.emit('start', {room: id})
+        socket.emit('start', { room: id })
     }
 
     return (
@@ -186,48 +192,48 @@ const Room = () => {
             {!started ? (user ? <div className="lobby">
                 <div className="heading">
                     <h1 className="title">BetterGuessr</h1>
-                    <img src="/marker.png"/>
+                    <img src="/marker.png" />
                 </div>
                 {(message === 'Connected') ? <h1 className="good_message">Status: {message}</h1> : <h1 className="bad_message">Status: {message}</h1>}
                 <div className="teams-container">
-                <div className="team-container">      
-                    <h1>Team 1</h1>        
-                    {team1?.map((user) => (
-                        <h2 key={user}>{user}</h2>
-                    ))}
+                    <div className="team-container">
+                        <h1>Team 1</h1>
+                        {team1?.map((user) => (
+                            <h2 key={user}>{user}</h2>
+                        ))}
                     </div>
-                    <div className="team-container">        
-                    <h1>Team 2</h1>
-                    {team2?.map((user) => (
-                        <h2 key={user}>{user}</h2>
-                    ))}
+                    <div className="team-container">
+                        <h1>Team 2</h1>
+                        {team2?.map((user) => (
+                            <h2 key={user}>{user}</h2>
+                        ))}
                     </div>
                 </div>
                 <button onClick={switchTeams} className={'switch-teams-button'}>switch team</button>
                 <button onClick={startRoom} className={'btn btn-white btn-animate'}>Start</button>
-                </div> : 
+            </div> :
                 <div className="register">
                     <h1>Pick Name</h1>
-                    <input autoFocus className="user-input" value={userInput} onChange={(e) => {setUserInput(e.target.value)}} onKeyDown={(e) => {
-                        if (e.key === 'Enter'){
+                    <input autoFocus className="user-input" value={userInput} onChange={(e) => { setUserInput(e.target.value) }} onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
                             setUser(userInput)
                         }
-                    }}/>
-                    <button onClick={() => {setUser(userInput)}}>Join</button>
+                    }} />
+                    <button onClick={() => { setUser(userInput) }}>Join</button>
                 </div>
-                )
+            )
                 : center && <div className="main-wrapper" style={styles}>
                     {roundCountdown !== 0 && <h1 className="round-countdown">{roundCountdown}</h1>}
                     {!roundEnd && <div className="health">
                         <h1 className="health-text">{health?.team1}</h1>
                         <h1 className="health-text">{health?.team2}</h1>
                     </div>}
-                    <StreetView key={center.lat} center={center} socket={socket}/>
-                    <GuessMap key={center.lng} setParentMarkers={setMarkers} socket={socket} user={user} room={id}/>
-                    {roundEnd && <FullscreenMap markers={markers} center={center} team1_health={health?.team1} team2_health={health?.team2} team1_distance={team1distance} team2_distance={team2distance} countdown={countdown}/>}
+                    <StreetView key={center.lat} center={center} socket={socket} />
+                    <GuessMap key={center.lng} setParentMarkers={setMarkers} socket={socket} user={user} room={id} />
+                    {roundEnd && <FullscreenMap markers={markers} center={center} team1_health={health?.team1} team2_health={health?.team2} team1_distance={team1distance} team2_distance={team2distance} countdown={countdown} />}
                     {win && <div className="win-overlay">
                         <text>{win}</text>
-                        <button onClick={() =>window.location.reload()}>play again</button>
+                        <button onClick={() => window.location.reload()}>play again</button>
                     </div>}
                 </div>}
         </>

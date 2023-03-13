@@ -1,11 +1,11 @@
 {
-  "name": "geoguesr-nextjs",
+  "name": "geoguessr-nextjs",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 13243",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 13243",
     "lint": "next lint"
   },
   "dependencies": {
