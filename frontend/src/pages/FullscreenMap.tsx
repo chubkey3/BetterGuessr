@@ -9,7 +9,9 @@ interface Props {
   team2_health?: number,
   team1_distance?: number,
   team2_distance?: number,
-  countdown: number
+  countdown: number,
+  round?: number,
+  multiplier?: number
 }
 
 const containerStyle = {
@@ -27,7 +29,7 @@ const mapOptions = {
 
 
 
-function FullscreenMap({markers, center, team1_health, team2_health, team1_distance, team2_distance, countdown}: Props) {
+function FullscreenMap({markers, center, team1_health, team2_health, team1_distance, team2_distance, countdown, round, multiplier}: Props) {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: "AIzaSyAa8AwVw9QKRS5AyGTih-iqcXgJ0ImcJ7o"
@@ -61,6 +63,7 @@ function FullscreenMap({markers, center, team1_health, team2_health, team1_dista
 
   return isLoaded ? (
     <div className={'overlay'}>
+      <h1>Round {round}</h1>
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={center}
@@ -88,6 +91,8 @@ function FullscreenMap({markers, center, team1_health, team2_health, team1_dista
           {team2_distance && <h2>{(team2_distance >= 1000) ? Math.ceil(team2_distance/1000) + ' km' : Math.ceil(team2_distance) + ' m'}</h2>}
         </div>
       </div>
+      <h3>Damage Multiplier</h3>
+      <h4>{multiplier}x</h4>
       <h1>{`New Round in ${countdown}`}</h1>
     </div>
   ) : <></>

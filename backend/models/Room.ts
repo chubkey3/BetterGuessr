@@ -68,6 +68,10 @@ const RoomSchema = mongoose.Schema({
     countdown_time: {
         type: Number,
         default: 15
+    },
+    round: {
+        type: Number,
+        default: 1
     }
 })
 

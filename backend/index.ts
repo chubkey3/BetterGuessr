@@ -92,6 +92,7 @@ const roundEnd = async (room_name: string, team1_guesses: {lat: number, lng: num
     let team2_health = room.team2_health
     
     var distance;
+    var round;
 
     for (let i = 0; i<team1_guesses.length; i++){
         distance = getDistance(team1_guesses[i], room.location)
@@ -108,9 +109,9 @@ const roundEnd = async (room_name: string, team1_guesses: {lat: number, lng: num
     }
 
     if (team1_guess < team2_guess){
-        team2_health = Math.ceil(Math.max(0, room.team2_health - (calculatePoints(team1_guess/1000) - calculatePoints(team2_guess/1000))))
+        team2_health = Math.ceil(Math.max(0, room.team2_health - calculateMultiplier(room.round) * (calculatePoints(team1_guess/1000) - calculatePoints(team2_guess/1000))))
     } else if (team2_guess < team1_guess){
-        team1_health = Math.ceil(Math.max(0, room.team1_health - (calculatePoints(team2_guess/1000) - calculatePoints(team1_guess/1000))))
+        team1_health = Math.ceil(Math.max(0, room.team1_health - calculateMultiplier(room.round) * (calculatePoints(team2_guess/1000) - calculatePoints(team1_guess/1000))))
     }
 
     //win condition
@@ -119,25 +120,29 @@ const roundEnd = async (room_name: string, team1_guesses: {lat: number, lng: num
         team2_health = 5000
         io.to(room_name).emit('win', {team: 'team2', users: room.team2_users})
         updateRoom(room_name, {started: false, location: {lat: 0, lng: 0}, team1_users: [], team2_users: []})
+        round = 1
 
     } else if (team2_health <= 0){
         team1_health = 5000
         team2_health = 5000
         io.to(room_name).emit('win', {team: 'team1', users: room.team1_users})
         updateRoom(room_name, {started: false, location: {lat: 0, lng: 0}, team1_users: [], team2_users: []})
+        round = 1
     
     } else {
         io.to(room_name).emit('round_over', {team1_guesses: room.team1_guesses, team2_guesses: room.team2_guesses, team1_health: team1_health, team2_health: team2_health, team1_distance: team1_guesses.length > 0 ? team1_guess : null, team2_distance: team2_guesses.length > 0 ? team2_guess : null})
         setTimeout(() => {
             let location = getRandomLocation()
-            io.to(room_name).emit('new_round', {location: location, team1_health: team1_health, team2_health: team2_health})
+            io.to(room_name).emit('new_round', {location: location, team1_health: team1_health, team2_health: team2_health, round: room.round + 1, multiplier: calculateMultiplier(room.round + 1)})
             updateRoom(room_name, {location: location})
         
         }, 5000)
+
+        round = room.round + 1
         
     }
 
-    updateRoom(room_name, {team1_health: team1_health, team2_health: team2_health, guessed: 0, team1_guesses: [], team2_guesses: []})  
+    updateRoom(room_name, {team1_health: team1_health, team2_health: team2_health, guessed: 0, team1_guesses: [], team2_guesses: [], round: round})  
 }
 
 const calculatePoints = (distance: number) => {
@@ -146,6 +151,14 @@ const calculatePoints = (distance: number) => {
     }
 
     return 5000*Math.exp(-distance/2000)
+}
+
+const calculateMultiplier = (round: number) => {
+    if (round < 3){
+        return 1
+    }
+
+    return 1+0.5*(round-3)
 }
 
 
@@ -190,7 +203,7 @@ io.on("connection", (socket: any) => {
                 if (room.started){
                     socket.join(req.room)
                     socket.emit('rejoin', {team1_users: room.team1_users, team2_users: room.team2_users})
-                    socket.emit('new_round', {location: room.location, team1_health: room.team1_health, team2_health: room.team2_health})
+                    socket.emit('new_round', {location: room.location, team1_health: room.team1_health, team2_health: room.team2_health, round: room.round, multiplier: calculateMultiplier(room.round)})
                 } else {
                     socket.emit('user_already_joined')
                 }
@@ -262,7 +275,7 @@ io.on("connection", (socket: any) => {
                     
                         updateRoom(req.room, {started: true, location: location})
                                        
-                        io.to(req.room).emit('new_round', {location: location, team1_health: room.team1_health, team2_health: room.team2_health})
+                        io.to(req.room).emit('new_round', {location: location, team1_health: room.team1_health, team2_health: room.team2_health, round: room.round, multiplier: calculateMultiplier(room.round)})
                     } else {
                         socket.emit('empty_team')
                     }
@@ -393,7 +406,7 @@ mongoose.set('strictQuery', true);
 
 if (process.env.PROD !== 'production'){
     //new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000, location: {lat: 0, lng: 0}}).save()
-    updateRoom('abc', {team1_users: [], team2_users: [], started: false, guessed: 0, team1_health: 5000, team2_health: 5000, countdown_time: 5})
+    updateRoom('abc', {team1_users: [], team2_users: [], started: false, guessed: 0, team1_health: 5000, team2_health: 5000, countdown_time: 5, round: 1})
     .then(() => {
         console.log('updated db')
     })

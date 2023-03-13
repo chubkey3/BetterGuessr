@@ -23,6 +23,8 @@ const Room = () => {
     const [win, setWin] = useState<string>()
     const [team1distance, setTeam1Distance] = useState<number>()
     const [team2distance, setTeam2Distance] = useState<number>()
+    const [round, setRound] = useState<number>()
+    const [multiplier, setMultiplier] = useState<number>()
 
     const [countdown, setCountdown] = useState<number>(0)
     const [roundCountdown, setRoundCountdown] = useState<number>(0)
@@ -98,6 +100,8 @@ const Room = () => {
                 setMarkers([])
                 toggleStarted(true)
                 setHealth({ team1: data.team1_health, team2: data.team2_health })
+                setRound(data.round)
+                setMultiplier(data.multiplier)
             })
 
             socket.on('round_over', (data) => {
@@ -220,7 +224,10 @@ const Room = () => {
                 </div>
             )
                 : center && <div className="main-wrapper" style={styles}>
-                    {roundCountdown !== 0 && <h1 className="round-countdown">{roundCountdown}</h1>}
+                    <div className="overhead-display">
+                        {roundCountdown !== 0 && <h1 className="round-countdown">{roundCountdown}</h1>}
+                        {!roundEnd && <h1 className="multiplier-display">{multiplier}x</h1>}
+                    </div>
                     {!roundEnd && <div className="health">
                         <div>
                             <h1 className="health-text">{health?.team1}</h1>
@@ -237,7 +244,7 @@ const Room = () => {
                     </div>}
                     <StreetView key={center.lat} center={center} socket={socket} />
                     <GuessMap key={center.lng} setParentMarkers={setMarkers} socket={socket} user={user} room={id} />
-                    {roundEnd && <FullscreenMap markers={markers} center={center} team1_health={health?.team1} team2_health={health?.team2} team1_distance={team1distance} team2_distance={team2distance} countdown={countdown} />}
+                    {roundEnd && <FullscreenMap markers={markers} center={center} team1_health={health?.team1} team2_health={health?.team2} team1_distance={team1distance} team2_distance={team2distance} countdown={countdown} round={round} multiplier={multiplier} />}
                     {win && <div className="win-overlay">
                         <text>{win}</text>
                         <button onClick={() => window.location.reload()}>play again</button>

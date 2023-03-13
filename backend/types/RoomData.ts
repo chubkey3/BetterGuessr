@@ -20,7 +20,8 @@ interface RoomData {
     team1_health: number,
     team2_health: number,
     location: LocationData,
-    countdown_time: number
+    countdown_time: number,
+    round: number
 }
 
 export default RoomData

@@ -30,18 +30,29 @@
   color: white;
   font-size: 22px;
   font-weight: 700;
-
 }
 
-.round-countdown {
+.overlay h4 {
+  margin-bottom: 10vh;
+}
+
+.overhead-display {
+  display: flex;
+  flex-direction: row;
   position: absolute;
   top: 1vh;
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(3px);
+  justify-content: space-between;
   z-index: 100;
   color: white;
   font-size: xx-large;
   font-weight: bold;
+}
+
+.overhead-display h1 {
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  margin-left: 2vw;
+  margin-right: 2vw;
   padding: 10px 30px 10px 30px;
   border-radius: 10px;
 }
