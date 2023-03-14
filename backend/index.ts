@@ -114,32 +114,36 @@ const roundEnd = async (room_name: string, team1_guesses: {lat: number, lng: num
         team1_health = Math.ceil(Math.max(0, room.team1_health - calculateMultiplier(room.round) * (calculatePoints(team2_guess/1000) - calculatePoints(team1_guess/1000))))
     }
 
-    //win condition
+    io.to(room_name).emit('round_over', {team1_guesses: room.team1_guesses, team2_guesses: room.team2_guesses, team1_health: team1_health, team2_health: team2_health, team1_distance: team1_guesses.length > 0 ? team1_guess : null, team2_distance: team2_guesses.length > 0 ? team2_guess : null})
+    
     if (team1_health <= 0){
         team1_health = 5000
         team2_health = 5000
-        io.to(room_name).emit('win', {team: 'team2', users: room.team2_users})
-        updateRoom(room_name, {started: false, location: {lat: 0, lng: 0}, team1_users: [], team2_users: []})
         round = 1
 
+        setTimeout(() => {
+            io.to(room_name).emit('win', {team: 'team2', users: room.team2_users})
+            updateRoom(room_name, {started: false, location: {lat: 0, lng: 0}, team1_users: [], team2_users: []})
+        }, 5000)
+        
     } else if (team2_health <= 0){
         team1_health = 5000
         team2_health = 5000
-        io.to(room_name).emit('win', {team: 'team1', users: room.team1_users})
-        updateRoom(room_name, {started: false, location: {lat: 0, lng: 0}, team1_users: [], team2_users: []})
         round = 1
-    
+
+        setTimeout(() => {
+            io.to(room_name).emit('win', {team: 'team1', users: room.team1_users})
+            updateRoom(room_name, {started: false, location: {lat: 0, lng: 0}, team1_users: [], team2_users: []})
+        }, 5000)
+        
     } else {
-        io.to(room_name).emit('round_over', {team1_guesses: room.team1_guesses, team2_guesses: room.team2_guesses, team1_health: team1_health, team2_health: team2_health, team1_distance: team1_guesses.length > 0 ? team1_guess : null, team2_distance: team2_guesses.length > 0 ? team2_guess : null})
+        round = room.round + 1
+
         setTimeout(() => {
             let location = getRandomLocation()
             io.to(room_name).emit('new_round', {location: location, team1_health: team1_health, team2_health: team2_health, round: room.round + 1, multiplier: calculateMultiplier(room.round + 1)})
             updateRoom(room_name, {location: location})
-        
         }, 5000)
-
-        round = room.round + 1
-        
     }
 
     updateRoom(room_name, {team1_health: team1_health, team2_health: team2_health, guessed: 0, team1_guesses: [], team2_guesses: [], round: round})  
