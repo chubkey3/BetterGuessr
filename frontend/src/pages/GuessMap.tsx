@@ -70,16 +70,18 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
     setMap(null)
   }, [])
 
-  const onMapClick = (e: any) => {
+  const onMapClick = useCallback((e: any) => {
     if (!guessed){
       setTempmarker({lat: e.latLng.lat(), lng: e.latLng.lng()})
     }
-  }
+  }, [guessed])
 
   const placeMarker = () => {
-    socket.emit('guess', {user: user, room: room, guess: tempmarker})
-    setTempmarker(undefined)
-    setGuessed(true)
+    if (tempmarker){
+      socket.emit('guess', {user: user, room: room, guess: tempmarker})
+      setTempmarker(undefined)
+      setGuessed(true)
+    }
   }
 
   return isLoaded ? (
@@ -99,7 +101,7 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
         ))}
         {tempmarker && <Marker key={'temp_marker'} icon={{url: "/marker.png"}} position={tempmarker}/>}
       </GoogleMap>
-      <button onClick={placeMarker} className={!tempmarker ? "disabled-button" : ""}>{(!tempmarker) ? (guessed ? 'Guess' : 'Place your pin to guess') : 'Guess'}</button>
+      <button onClick={placeMarker} className={!tempmarker ? "disabled-button" : ""}>{(!tempmarker) ? (guessed ? 'Guess' : 'Place pin to guess') : 'Guess'}</button>
     </div>
   ) : <></>
 }

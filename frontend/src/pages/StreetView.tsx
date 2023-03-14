@@ -61,7 +61,7 @@ function MyComponent({ center }: Props) {
     setMap(null);
   }, []);
 
-  const testOnLoad = () => {
+  const testOnLoad = useCallback(() => {
     const panoroma = new window.google.maps.StreetViewService();
     
     panoroma.getPanorama({ location: center }, (data: any) =>
@@ -72,7 +72,7 @@ function MyComponent({ center }: Props) {
         )
       )
     );
-  };
+  }, [center])
 
   return isLoaded ? (
     <GoogleMap

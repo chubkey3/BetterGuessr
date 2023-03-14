@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { io } from 'socket.io-client'
 import FullscreenMap from "../FullscreenMap";
 import StreetView from "../StreetView";
@@ -174,13 +174,13 @@ const Room = () => {
 
     }, [roundCountdown])
 
-    const switchTeams = () => {
+    const switchTeams = useCallback(() => {
         socket.emit('switch_teams', { room: id, user: user })
-    }
+    }, [id, user])
 
-    const startRoom = () => {
+    const startRoom = useCallback(() => {
         socket.emit('start', { room: id })
-    }
+    }, [id])
 
     return (
         <>
