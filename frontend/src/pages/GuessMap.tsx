@@ -18,7 +18,7 @@ const mapOptions = {
 
 function GuessMap({ setParentMarkers, socket, user, room }: Props) {
   const [tempmarker, setTempmarker] = useState<google.maps.LatLngLiteral>()
-  const [markers, setMarkers] = useState<google.maps.LatLngLiteral[]>([]);
+  const [markers, setMarkers] = useState<{lat: number, lng: number, user: string}[]>([]);
   const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral | undefined>({lat: 0, lng: 0})
   const [guessed, setGuessed] = useState<boolean>(false)
 
@@ -97,11 +97,11 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
         mapContainerClassName={'guess-map'}
       >
         {markers.map((marker) => (
-          <Marker key={marker.lat} animation={window.google.maps.Animation.DROP} icon={{url: "/marker.png"}} position={{ lat: marker.lat, lng: marker.lng }} />
+          <Marker label={marker.user} key={marker.lat} animation={window.google.maps.Animation.DROP} icon={{url: "/marker.png", labelOrigin: new google.maps.Point(20, -10)}} position={{ lat: marker.lat, lng: marker.lng }} />
         ))}
-        {tempmarker && <Marker key={'temp_marker'} icon={{url: "/marker.png"}} position={tempmarker}/>}
+        {tempmarker && <Marker label={user} key={'temp_marker'} icon={{url: "/marker.png", labelOrigin: new google.maps.Point(20, -10)}} position={tempmarker}/>}
       </GoogleMap>
-      <button onClick={placeMarker} className={!tempmarker ? "disabled-button" : ""}>{(!tempmarker) ? (guessed ? 'Guess' : 'Place pin to guess') : 'Guess'}</button>
+      <button onClick={placeMarker} className={!tempmarker ? "disabled-button" : "but"}>{(!tempmarker) ? (guessed ? 'Guess' : 'Place pin to guess') : 'Guess'}</button>
     </div>
   ) : <></>
 }

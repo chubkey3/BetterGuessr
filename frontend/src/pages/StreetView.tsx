@@ -2,7 +2,7 @@ import {
   GoogleMap,
   StreetViewPanorama,
   StreetViewService,
-  useJsApiLoader,
+  useJsApiLoader
 } from "@react-google-maps/api";
 import React, { memo, useCallback, useState } from "react";
 import { Socket } from "socket.io-client";
@@ -26,20 +26,23 @@ function MyComponent({ center }: Props) {
     mapTypeControl: false,
     minZoom: 2,
     streetViewControl: false,
-    position: location,
-    zoomControl: false
+    position: location
   
 };
 
-  const StreetViewOptions = {
+  const StreetViewOptions:google.maps.StreetViewPanoramaOptions = {
     fullscreenControl: false,
     addressControl: false,
-    disableDefaultUI: true,
     showRoadLabels: false,
     enableCloseButton: false,
     visible: true,
     position: location,
-    zoomControl: false,
+    zoomControlOptions: {
+      position: 6
+    },
+    panControlOptions: {
+      position: 6
+    }
   };
 
   const { isLoaded } = useJsApiLoader({

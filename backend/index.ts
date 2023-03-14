@@ -329,9 +329,9 @@ io.on("connection", (socket: any) => {
                         clearInterval(roundCountdown)
                         roundEnd(req.room, team1_guesses, team2_guesses)
                         if (room.team1_users.includes(req.user)){
-                            io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, team: room.team1_users})
+                            io.to(req.room).emit('guess', {guess: {lat: req.guess.lat, lng: req.guess.lng, user: req.user}, team: room.team1_users})
                         } else {
-                            io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, team: room.team2_users})
+                            io.to(req.room).emit('guess', {guess: {lat: req.guess.lat, lng: req.guess.lng, user: req.user}, team: room.team2_users})
                         }
                         
 
@@ -339,15 +339,15 @@ io.on("connection", (socket: any) => {
                         clearInterval(roundCountdown)
                         roundCountdown = setTimeout(() => roundEnd(req.room, team1_guesses, team2_guesses), 1000*room.countdown_time)
                         if (room.team1_users.includes(req.user)){
-                            io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, countdown: room.countdown_time, team: room.team1_users})
+                            io.to(req.room).emit('guess', {guess: {lat: req.guess.lat, lng: req.guess.lng, user: req.user}, countdown: room.countdown_time, team: room.team1_users})
                         } else {
-                            io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, countdown: room.countdown_time, team: room.team2_users})
+                            io.to(req.room).emit('guess', {guess: {lat: req.guess.lat, lng: req.guess.lng, user: req.user}, countdown: room.countdown_time, team: room.team2_users})
                         }
                     } else {
                         if (room.team1_users.includes(req.user)){
-                            io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, team: room.team1_users})
+                            io.to(req.room).emit('guess', {guess: {lat: req.guess.lat, lng: req.guess.lng, user: req.user}, team: room.team1_users})
                         } else {
-                            io.to(req.room).emit('guess', {user: req.user, guess: {lat: req.guess.lat, lng: req.guess.lng}, team: room.team2_users})
+                            io.to(req.room).emit('guess', {guess: {lat: req.guess.lat, lng: req.guess.lng, user: req.user}, team: room.team2_users})
                         }
                     }                                                   
                 }

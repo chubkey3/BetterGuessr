@@ -31,7 +31,7 @@ const Room = () => {
 
     const [started, toggleStarted] = useState<boolean>(false)
     const [center, setCenter] = useState<google.maps.LatLngLiteral>()
-    const [markers, setMarkers] = useState([])
+    const [markers, setMarkers] = useState<{lat: number, lng: number, user: string}[]>([])
     const [user, setUser] = useState<string>()
     const [userInput, setUserInput] = useState<string>("")
     const [roundEnd, setRoundEnd] = useState<boolean>(false)
@@ -210,8 +210,8 @@ const Room = () => {
                         ))}
                     </div>
                 </div>
-                <button onClick={switchTeams} className={'switch-teams-button'}>switch team</button>
-                <button onClick={startRoom} className={'btn btn-white btn-animate'}>Start</button>
+                <button onClick={switchTeams} className={'but switch-teams-button'}>switch team</button>
+                <button onClick={startRoom} className={'but'}>Start</button>
             </div> :
                 <div className="register">
                     <h1>Pick Name</h1>
@@ -220,7 +220,7 @@ const Room = () => {
                             setUser(userInput)
                         }
                     }} />
-                    <button onClick={() => { setUser(userInput) }}>Join</button>
+                    <button className="but" onClick={() => { setUser(userInput) }}>Join</button>
                 </div>
             )
                 : center && <div className="main-wrapper" style={styles}>
@@ -231,15 +231,19 @@ const Room = () => {
                     {!roundEnd && <div className="health">
                         <div>
                             <h1 className="health-text">{health?.team1}</h1>
-                            {team1?.map((user) => (
-                                <h1 key={user}>{user}</h1>
-                            ))}
+                            <div className="team-container">
+                                {team1?.map((user) => (
+                                    <h1 key={user}>{user}</h1>
+                                ))}
+                            </div>
                         </div>
                         <div>
                             <h1 className="health-text">{health?.team2}</h1>
-                            {team2?.map((user) => (
-                                <h1 key={user}>{user}</h1>
-                            ))}
+                            <div className="team-container">
+                                {team2?.map((user) => (
+                                    <h1 key={user}>{user}</h1>
+                                ))}
+                            </div>
                         </div>
                     </div>}
                     <StreetView key={center.lat} center={center} socket={socket} />
@@ -247,7 +251,7 @@ const Room = () => {
                     {roundEnd && <FullscreenMap markers={markers} center={center} team1_health={health?.team1} team2_health={health?.team2} team1_distance={team1distance} team2_distance={team2distance} countdown={countdown} round={round} multiplier={multiplier} />}
                     {win && <div className="win-overlay">
                         <text>{win}</text>
-                        <button onClick={() => window.location.reload()}>play again</button>
+                        <button className="but" onClick={() => window.location.reload()}>play again</button>
                     </div>}
                 </div>}
         </>

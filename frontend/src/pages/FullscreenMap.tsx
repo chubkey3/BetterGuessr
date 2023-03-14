@@ -3,7 +3,7 @@ import { GoogleMap, Marker, useJsApiLoader, Polyline } from '@react-google-maps/
 
 
 interface Props {
-  markers: google.maps.LatLngLiteral[],
+  markers: {lat: number, lng: number, user: string}[],
   center: google.maps.LatLngLiteral,
   team1_health?: number,
   team2_health?: number,
@@ -73,7 +73,7 @@ function FullscreenMap({markers, center, team1_health, team2_health, team1_dista
         options={mapOptions}
       >
         {markers.map((marker) => (
-          <Marker key={marker.lat} animation={window.google.maps.Animation.DROP} icon={{url: "/marker.png"}} position={{ lat: marker.lat, lng: marker.lng }} />
+          <Marker label={marker.user} key={marker.lat} animation={window.google.maps.Animation.DROP} icon={{url: "/marker.png", labelOrigin: new google.maps.Point(20, -10)}} position={{ lat: marker.lat, lng: marker.lng }} />
         ))}
         <Marker key={'location'} animation={window.google.maps.Animation.DROP} icon={{url: "/marker2.png"}} position={center}/>
         {markers.map((marker) => (
