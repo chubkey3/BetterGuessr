@@ -406,7 +406,7 @@ mongoose.set('strictQuery', true);
 
 if (process.env.PROD !== 'production'){
     //new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000, location: {lat: 0, lng: 0}}).save()
-    updateRoom('abc', {team1_users: [], team2_users: [], started: false, guessed: 0, team1_health: 5000, team2_health: 5000, countdown_time: 5, round: 1})
+    updateRoom('abc', {team1_guesses: [], team2_guesses: [], team1_users: [], team2_users: [], started: false, guessed: 0, team1_health: 5000, team2_health: 5000, countdown_time: 5, round: 1})
     .then(() => {
         console.log('updated db')
     })

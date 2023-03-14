@@ -16,17 +16,12 @@ const mapOptions = {
   minZoom: 1
 }
 
-const mapStyles = {
-  width: '25vw',
-  height: '25vw',
-  zIndex: '5',
-  borderRadius: '5px'
-}
-
 function GuessMap({ setParentMarkers, socket, user, room }: Props) {
+  const [tempmarker, setTempmarker] = useState<google.maps.LatLngLiteral>()
   const [markers, setMarkers] = useState<google.maps.LatLngLiteral[]>([]);
   const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral | undefined>({lat: 0, lng: 0})
-  
+  const [guessed, setGuessed] = useState<boolean>(false)
+
   const [map, setMap] = useState<google.maps.Map | null>(null)
   const mapRef = useRef(null)
 
@@ -45,6 +40,20 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
     })
   }, [setParentMarkers, socket])
 
+  const eventListner = useCallback((event: any) => {
+    if (event.code === 'Space'){
+      placeMarker()
+    }
+  }, [tempmarker])
+
+  useEffect(() => {
+    window.addEventListener('keyup', eventListner)
+
+    return () => {
+      window.removeEventListener('keyup', eventListner)
+    }
+  }, [eventListner])
+
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: "AIzaSyAa8AwVw9QKRS5AyGTih-iqcXgJ0ImcJ7o"
@@ -62,13 +71,20 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
   }, [])
 
   const onMapClick = (e: any) => {
-    socket.emit('guess', {user: user, room: room, guess: {lat: e.latLng.lat(), lng: e.latLng.lng()}})
+    if (!guessed){
+      setTempmarker({lat: e.latLng.lat(), lng: e.latLng.lng()})
+    }
+  }
+
+  const placeMarker = () => {
+    socket.emit('guess', {user: user, room: room, guess: tempmarker})
+    setTempmarker(undefined)
+    setGuessed(true)
   }
 
   return isLoaded ? (
     <div className='guess-map-wrapper'>
-      <GoogleMap
-        mapContainerStyle={mapStyles}
+      <GoogleMap  
         center={mapCenter}
         zoom={2}
         onLoad={onLoad}
@@ -81,8 +97,9 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
         {markers.map((marker) => (
           <Marker key={marker.lat} animation={window.google.maps.Animation.DROP} icon={{url: "/marker.png"}} position={{ lat: marker.lat, lng: marker.lng }} />
         ))}
+        {tempmarker && <Marker key={'temp_marker'} icon={{url: "/marker.png"}} position={tempmarker}/>}
       </GoogleMap>
-      <button>{(markers.length === 0) ? 'Place your pin to guess' : 'Guess'}</button>
+      <button onClick={placeMarker} className={!tempmarker ? "disabled-button" : ""}>{(!tempmarker) ? (guessed ? 'Guess' : 'Place your pin to guess') : 'Guess'}</button>
     </div>
   ) : <></>
 }
