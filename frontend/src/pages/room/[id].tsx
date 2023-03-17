@@ -76,6 +76,7 @@ const Room = () => {
 
             socket.on('user_already_joined', () => {
                 setMessage('Already Joined')
+                sessionStorage.removeItem('user')
             })
 
             socket.on('rejoin', (data) => {
@@ -105,14 +106,16 @@ const Room = () => {
             })
 
             socket.on('round_over', (data) => {
-
                 setRoundEnd(true)
                 setHealth({ team1: data.team1_health, team2: data.team2_health })
-                setCountdown(5)
+
+                if (data.team1_health > 0 && data.team2_health > 0){
+                    setCountdown(5)
+                }
+
                 setRoundCountdown(0)
 
                 setTeam1Distance(data.team1_distance)
-
                 setTeam2Distance(data.team2_distance)
             })
 
@@ -229,6 +232,7 @@ const Room = () => {
                         {!roundEnd && <h1 className="multiplier-display">{multiplier}x</h1>}
                     </div>
                     {!roundEnd && <div className="health">
+                        {user && team1?.includes(user) ?
                         <div>
                             <h1 className="health-text">{health?.team1}</h1>
                             <div className="team-container">
@@ -237,6 +241,7 @@ const Room = () => {
                                 ))}
                             </div>
                         </div>
+                        :
                         <div>
                             <h1 className="health-text">{health?.team2}</h1>
                             <div className="team-container">
@@ -245,10 +250,30 @@ const Room = () => {
                                 ))}
                             </div>
                         </div>
+                        }
+                        {user && team1?.includes(user) ?
+                        <div>
+                            <h1 className="health-text">{health?.team2}</h1>
+                            <div className="team-container">
+                                {team2?.map((user) => (
+                                    <h1 key={user}>{user}</h1>
+                                ))}
+                            </div>
+                        </div>
+                        :
+                        <div>
+                            <h1 className="health-text">{health?.team1}</h1>
+                            <div className="team-container">
+                                {team1?.map((user) => (
+                                    <h1 key={user}>{user}</h1>
+                                ))}
+                            </div>
+                        </div>
+                        }
                     </div>}
                     <StreetView key={center.lat} center={center} socket={socket} />
                     <GuessMap key={center.lng} setParentMarkers={setMarkers} socket={socket} user={user} room={id} />
-                    {roundEnd && <FullscreenMap markers={markers} center={center} team1_health={health?.team1} team2_health={health?.team2} team1_distance={team1distance} team2_distance={team2distance} countdown={countdown} round={round} multiplier={multiplier} />}
+                    {roundEnd && <FullscreenMap markers={markers} center={center} team1_health={health?.team1} team2_health={health?.team2} team1_distance={team1distance} team2_distance={team2distance} countdown={countdown} round={round} multiplier={multiplier} team={user && team1?.includes(user) ? 'team1' : 'team2'} />}
                     {win && <div className="win-overlay">
                         <text>{win}</text>
                         <button className="but" onClick={() => window.location.reload()}>play again</button>
