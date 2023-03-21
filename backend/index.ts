@@ -429,6 +429,16 @@ app.get('/join', (req: any, res: any) => {
     res.send(randomUUID())
 })
 
+app.get('/reset', (req: any, res: any) => {
+    updateRoom('abc', {team1_guesses: [], team2_guesses: [], team1_users: [], team2_users: [], started: false, guessed: 0, team1_health: 5000, team2_health: 5000, countdown_time: 5, round: 1})
+    .then(() => {
+        res.send('Successfully Reseted!')
+    })
+    .catch(() => {
+        res.send('Error Occured Reseting!')
+    })
+})
+
 /*
 app.listen(process.env.EXPRESS_PORT || 3001, () => {
     console.log('Server running on port ' + process.env.EXPRESS_PORT)
