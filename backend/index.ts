@@ -423,7 +423,7 @@ app.use(cors())
 
 app.get('/', (req:any, res: any) => {
     res.send('Betterguessr backend service.')
-})
+})	
 
 app.get('/join', (req: any, res: any) => {
     res.send(randomUUID())

@@ -7,10 +7,9 @@ import GuessMap from '../GuessMap'
 import styles from "@/styles/Home.module.css";
 import Head from "next/head";
 
-
 const Room = () => {
     const router = useRouter();
-    const socket = useMemo(() => io(process.env.PROD == 'true' ? "https://socketbetterguessr.flatypus.me" : "http://localhost:13242"), [])
+    const socket = useMemo(() => io(process.env.PROD == 'true' ? "https://api.chubkey.com" : "http://localhost:13242"), [])
 
     const { id } = router.query
 
