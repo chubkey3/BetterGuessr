@@ -1,0 +1,17 @@
+{
+  "name": "BetterGuessr",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "turbo dev --no-daemon",
+    "build": "turbo build --no-daemon",
+    "start": "turbo start --no-daemon"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "turbo": "^1.8.8"
+  }
+}
