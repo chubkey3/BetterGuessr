@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build"
+    "dev": "turbo dev --no-daemon",
+    "build": "turbo build --no-daemon",
+    "start": "turbo start --no-daemon"
   },
   "keywords": [],
   "author": "",
