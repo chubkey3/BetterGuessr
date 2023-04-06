@@ -10,8 +10,8 @@
       "outputs": [".next/**", "dist/**"]
     },
     "lint": {},
-    "deploy": {
-      "dependsOn": ["build", "test", "lint"]
+    "start": {
+        "dependsOn": ["build", "test", "lint"]
     }
   }
 }
