@@ -15,6 +15,8 @@
     flex-direction: column;
     align-items: center;
     width: 15vw;
+    min-width: 200px;
+    min-height: 200px;
     height: 16vw;
     opacity: 0.5;
     transition: all 0.2s ease-in;
@@ -22,8 +24,16 @@
 
 .guess-map-wrapper:hover {
   width: 40vw;
-  height: 70vh;
+  height: 60vh;
   opacity: 1;
+}
+
+@media only screen and (max-width: 800px) {
+  .guess-map-wrapper:hover {
+    width: 80vw;
+    height: 50vh;
+    opacity: 1;
+  }
 }
 
 .guess-map-wrapper button {
@@ -89,19 +99,8 @@
   top: 1vh;
   justify-content: space-between;
   z-index: 100;
-  color: white;
-  font-size: xx-large;
-  font-weight: bold;
 }
 
-.overhead-display h1 {
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(3px);
-  margin-left: 2vw;
-  margin-right: 2vw;
-  padding: 10px 30px 10px 30px;
-  border-radius: 10px;
-}
 
 .but {
     font-size: 18px;

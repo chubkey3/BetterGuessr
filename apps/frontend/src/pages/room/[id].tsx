@@ -6,6 +6,8 @@ import StreetView from "../StreetView";
 import GuessMap from '../GuessMap'
 import styles from "@/styles/Home.module.css";
 import Head from "next/head";
+import { Box } from "@chakra-ui/react";
+import TextBox from "@/components/TextBox";
 
 const Room = () => {
     const router = useRouter();
@@ -227,13 +229,13 @@ const Room = () => {
             )
                 : center && <div className="main-wrapper" style={styles}>
                     <div className="overhead-display">
-                        {roundCountdown !== 0 && <h1 className="round-countdown">{roundCountdown}</h1>}
-                        {!roundEnd && <h1 className="multiplier-display">{multiplier}x</h1>}
+                        {roundCountdown !== 0 && <TextBox>{roundCountdown}</TextBox>}
+                        {!roundEnd && <TextBox>{multiplier}x</TextBox>}
                     </div>
                     {!roundEnd && <div className="health">
                         {user && team1?.includes(user) ?
                         <div>
-                            <h1 className="health-text">{health?.team1}</h1>
+                            <TextBox>{health?.team1}</TextBox>
                             <div className="team-container">
                                 {team1?.map((user) => (
                                     <h1 key={user}>{user}</h1>
@@ -242,7 +244,7 @@ const Room = () => {
                         </div>
                         :
                         <div>
-                            <h1 className="health-text">{health?.team2}</h1>
+                            <TextBox>{health?.team2}</TextBox>
                             <div className="team-container">
                                 {team2?.map((user) => (
                                     <h1 key={user}>{user}</h1>
@@ -252,7 +254,7 @@ const Room = () => {
                         }
                         {user && team1?.includes(user) ?
                         <div>
-                            <h1 className="health-text">{health?.team2}</h1>
+                            <TextBox>{health?.team2}</TextBox>
                             <div className="team-container">
                                 {team2?.map((user) => (
                                     <h1 key={user}>{user}</h1>
@@ -261,7 +263,7 @@ const Room = () => {
                         </div>
                         :
                         <div>
-                            <h1 className="health-text">{health?.team1}</h1>
+                            <TextBox>{health?.team1}</TextBox>
                             <div className="team-container">
                                 {team1?.map((user) => (
                                     <h1 key={user}>{user}</h1>
