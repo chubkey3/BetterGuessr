@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "turbo dev --no-daemon",
     "build": "turbo build --no-daemon",
-    "start": "turbo start --no-daemon"
+    "start": "turbo start --no-daemon",
+    "lint": "turbo lint --no-daemon"
   },
   "keywords": [],
   "author": "",
