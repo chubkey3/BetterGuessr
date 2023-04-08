@@ -5,6 +5,36 @@ const RoomSchema = mongoose.Schema({
   room_name: {
     type: String,
   },
+  team1_temp: [
+    {
+      user: {
+        type: String,
+      },
+      lat: {
+        type: Number,
+        default: 0,
+      },
+      lng: {
+        type: Number,
+        default: 0,
+      },
+    },
+  ],
+  team2_temp: [
+    {
+      user: {
+        type: String,
+      },
+      lat: {
+        type: Number,
+        default: 0,
+      },
+      lng: {
+        type: Number,
+        default: 0,
+      },
+    },
+  ],
   team1_guesses: [
     {
       lat: {

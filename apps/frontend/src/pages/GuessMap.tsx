@@ -75,6 +75,7 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
   const onMapClick = useCallback(
     (e: any) => {
       if (!guessed) {
+        // socket.emit("temporary_guess", { user: user, room: room, guess: e.latLng });
         setTempmarker({ lat: e.latLng.lat(), lng: e.latLng.lng() });
       }
     },

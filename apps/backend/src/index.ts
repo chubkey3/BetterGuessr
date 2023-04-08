@@ -142,7 +142,14 @@ const roundEnd = async (
 
     setTimeout(() => {
       io.to(room_name).emit("win", { team: "team2", users: room.team2_users });
-      updateRoom(room_name, { started: false, location: { lat: 0, lng: 0 }, team1_users: [], team2_users: [] });
+      updateRoom(room_name, {
+        started: false,
+        location: { lat: 0, lng: 0 },
+        team1_temp: [],
+        team2_temp: [],
+        team1_users: [],
+        team2_users: [],
+      });
     }, 5000);
   } else if (team2_health <= 0) {
     team1_health = 5000;
@@ -151,7 +158,14 @@ const roundEnd = async (
 
     setTimeout(() => {
       io.to(room_name).emit("win", { team: "team1", users: room.team1_users });
-      updateRoom(room_name, { started: false, location: { lat: 0, lng: 0 }, team1_users: [], team2_users: [] });
+      updateRoom(room_name, {
+        started: false,
+        location: { lat: 0, lng: 0 },
+        team1_temp: [],
+        team2_temp: [],
+        team1_users: [],
+        team2_users: [],
+      });
     }, 5000);
   } else {
     round = room.round + 1;
@@ -173,6 +187,8 @@ const roundEnd = async (
     team1_health: team1_health,
     team2_health: team2_health,
     guessed: 0,
+    team1_temp: [],
+    team2_temp: [],
     team1_guesses: [],
     team2_guesses: [],
     round: round,
@@ -206,27 +222,47 @@ var roundCountdown: any;
 io.on("connection", (socket: any) => {
   socket.on("join", async (r: any) => {
     const req: { room: string; user: string } = parseData(r);
-
+    console.log(req.user || "user", "joining room", req.room || "room");
     let room = await findRoom(req.room);
 
     if (!req.room || !req.user) {
       socket.emit("invalid_payload");
     } else if (!room) {
-      socket.emit("room_not_found");
+      // create room
+      await Room.create({
+        room_name: req.room,
+        team1_users: [req.user],
+        team2_users: [],
+        team1_temp: [],
+        team2_temp: [],
+        team1_guesses: [],
+        team2_guesses: [],
+        guessed: 0,
+        started: false,
+        location: { lat: 0, lng: 0 },
+        team1_health: 5000,
+        team2_health: 5000,
+        round: 1,
+      });
+      socket.join(req.room);
+      activeUsers[socket.id] = { room: req.room, user: req.user };
+      updateUsers(req.room);
     } else {
       if (!room.team1_users.includes(req.user) && !room.team2_users.includes(req.user)) {
         if (room.started) {
           socket.emit("room_started");
         } else {
           socket.join(req.room);
-
           activeUsers[socket.id] = { room: req.room, user: req.user };
-
-          let team1_users = room.team1_users;
-
-          team1_users.push(req.user);
-
-          await updateRoom(req.room, { team1_users: team1_users }, updateUsers(req.room));
+          if (room.team1_users.length < room.team2_users.length) {
+            let team1_users = room.team1_users;
+            team1_users.push(req.user);
+            await updateRoom(req.room, { team1_users: team1_users }, updateUsers(req.room));
+          } else {
+            let team2_users = room.team2_users;
+            team2_users.push(req.user);
+            await updateRoom(req.room, { team2_users: team2_users }, updateUsers(req.room));
+          }
         }
       } else if (room.team1_users.includes(req.user) || room.team2_users.includes(req.user)) {
         if (room.started) {
@@ -321,7 +357,15 @@ io.on("connection", (socket: any) => {
       }
     }
   });
-
+  socket.on("temporary_guess", async (r: any) => {
+    const req: { user: string; room: string; guess: LocationData } = parseData(r);
+    let room = await findRoom(req.room);
+    // console.log(req);
+    if (!room) {
+      socket.emit("room_not_found");
+    } else {
+    }
+  });
   socket.on("guess", async (r: any) => {
     const req: { user: string; room: string; guess: LocationData } = parseData(r);
 
@@ -415,7 +459,10 @@ io.on("connection", (socket: any) => {
       const user = activeUsers[socket.id].user;
 
       let room = await findRoom(room_name);
-
+      if (!room) {
+        delete activeUsers[socket.id];
+        return;
+      }
       if (!room.started) {
         let temp1: string[] = [];
         let temp2: string[] = [];
@@ -453,6 +500,8 @@ if (process.env.PROD !== "production") {
   updateRoom("abc", {
     team1_guesses: [],
     team2_guesses: [],
+    team1_temp: [],
+    team2_temp: [],
     team1_users: [],
     team2_users: [],
     started: false,
@@ -483,6 +532,8 @@ app.get("/reset", (req: any, res: any) => {
   updateRoom("abc", {
     team1_guesses: [],
     team2_guesses: [],
+    team1_temp: [],
+    team2_temp: [],
     team1_users: [],
     team2_users: [],
     started: false,
@@ -507,5 +558,5 @@ app.listen(process.env.EXPRESS_PORT || 3001, () => {
 */
 
 server.listen(process.env.SOCKET_IO_PORT || 13242, () => {
-  console.log("Socket running on port " + process.env.SOCKET_IO_PORT);
+  console.log("Socket running on port " + process.env.SOCKET_IO_PORT || "13242");
 });
