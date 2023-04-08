@@ -40,7 +40,7 @@ function FullscreenMap({
 }: Props) {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
+    googleMapsApiKey: "AIzaSyAa8AwVw9QKRS5AyGTih-iqcXgJ0ImcJ7o",
   });
 
   const [map, setMap] = useState<google.maps.Map | null>(null);
