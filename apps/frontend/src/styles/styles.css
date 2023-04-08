@@ -1,25 +1,25 @@
 .main-wrapper {
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .guess-map-wrapper {
-    position: absolute;
-    z-index: 3;
-    bottom: 5vh;
-    right: 5vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 15vw;
-    min-width: 200px;
-    min-height: 200px;
-    height: 16vw;
-    opacity: 0.5;
-    transition: all 0.2s ease-in;
+  position: absolute;
+  z-index: 3;
+  bottom: 5vh;
+  right: 5vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 15vw;
+  min-width: 200px;
+  min-height: 200px;
+  height: 16vw;
+  opacity: 0.5;
+  transition: all 0.2s ease-in;
 }
 
 .guess-map-wrapper:hover {
@@ -101,23 +101,22 @@
   z-index: 100;
 }
 
-
 .but {
-    font-size: 18px;
-    font-weight: 700;
-    border-radius: 30px;
-    background-color: #6cb928;
-    color: white;
-    font-style: italic;
-    cursor: pointer;
-    padding: 15px;
-    padding-left: 30px;
-    padding-right: 30px;
-    text-transform: uppercase;
-    border: none;
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-    transition: transform 0.2s ease-out;
+  font-size: 18px;
+  font-weight: 700;
+  border-radius: 30px;
+  background-color: #6cb928;
+  color: white;
+  font-style: italic;
+  cursor: pointer;
+  padding: 15px;
+  padding-left: 30px;
+  padding-right: 30px;
+  text-transform: uppercase;
+  border: none;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  transition: transform 0.2s ease-out;
 }
 
 .win-overlay {
@@ -186,7 +185,7 @@
 }
 
 .logo {
-  background-image: url('/marker.png');
+  background-image: url("/marker.png");
   width: 100px;
   height: 100px;
 }
@@ -221,7 +220,7 @@
 
 .register input {
   margin-top: 2vh;
-  outline: 1px solid rgba(0,0,0,0.5);
+  outline: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 15px;
   padding: 10px;
 }
@@ -251,4 +250,11 @@
   padding: 5px 30px 5px 30px;
   border-radius: 15px;
   backdrop-filter: blur(2px);
+}
+
+.gradient-outline {
+  background: -webkit-linear-gradient(0deg, #443973 5%, #66466e 90%);
+  -webkit-background-clip: text;
+  -webkit-text-stroke: 12px transparent;
+  color: white;
 }

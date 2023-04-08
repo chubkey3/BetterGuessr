@@ -2,3 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "Futura";
+  src: url("/fonts/FuturaLTPaneuropeanBold.ttf") format("truetype"),
+    url("/fonts/FuturaLTPaneuropeanBold.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Sequel Sans";
+  src: url("/fonts/SequelSansBookHead.ttf") format("truetype"), url("/fonts/SequelSansBookHead.woff") format("woff");
+}

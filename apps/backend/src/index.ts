@@ -254,7 +254,7 @@ io.on("connection", (socket: any) => {
         } else {
           socket.join(req.room);
           activeUsers[socket.id] = { room: req.room, user: req.user };
-          if (room.team1_users.length < room.team2_users.length) {
+          if (room.team1_users.length <= room.team2_users.length) {
             let team1_users = room.team1_users;
             team1_users.push(req.user);
             await updateRoom(req.room, { team1_users: team1_users }, updateUsers(req.room));
