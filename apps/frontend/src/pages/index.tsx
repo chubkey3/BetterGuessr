@@ -8,7 +8,7 @@ export default function Home() {
         <title>BetterGuessr</title>
         <meta name="description" content="GeoGuessr but better" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta http-equiv="refresh" content="0; url=/singleplayer" />
+        <meta httpEquiv="refresh" content="0; url=/singleplayer" />
         <link rel="icon" href="/marker.png" />
       </Head>
     </>

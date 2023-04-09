@@ -40,7 +40,7 @@ export default function DashboardWrapper({ children }: { children: React.ReactNo
           style={{ fontFamily: "Sequel Sans" }}
         >
           {icon}
-          <h2 className="py-3 group-hover:text-white">{text}</h2>
+          <h2 className={`${mode === text ? "text-white" : ""} py-3 group-hover:text-white`}>{text}</h2>
         </div>
       </button>
     );
