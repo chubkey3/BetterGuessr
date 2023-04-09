@@ -1,9 +1,9 @@
 import DashboardWrapper from "@/components/DashboardWrapper";
 
-export default function Singleplayer() {
+export default function Multiplayer() {
   return (
     <DashboardWrapper>
-      <div>Singleplayer</div>
+      <div>Multiplayer</div>
     </DashboardWrapper>
   );
 }
