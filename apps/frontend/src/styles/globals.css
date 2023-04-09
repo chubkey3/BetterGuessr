@@ -12,3 +12,19 @@
   font-family: "Sequel Sans";
   src: url("/fonts/SequelSansBookHead.ttf") format("truetype"), url("/fonts/SequelSansBookHead.woff") format("woff");
 }
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background-color: #42424200;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #d8d8d8;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #b1b1b1;
+}

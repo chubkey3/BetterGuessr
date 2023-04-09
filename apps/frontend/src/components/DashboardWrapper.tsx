@@ -3,11 +3,20 @@ import * as React from "react";
 import { useRouter } from "next/router";
 import { IoPersonSharp, IoPeopleSharp } from "react-icons/io5";
 import { useEffect, useState } from "react";
+import SearchBar from "@/components/SearchBar";
 
-function BlurCircles({ top, left, right = "0", color }: { top: string; left: string; right?: string; color: string }) {
+interface BlurCirclesProps {
+  top: string;
+  left: string;
+  right?: string;
+  opacity?: number;
+  color: string;
+}
+
+function BlurCircles({ top, left, right = "0", opacity = 75, color }: BlurCirclesProps) {
   return (
     <div
-      className="overflow-hidden absolute w-[800px] h-[800px] rounded-full blur-[400px] ring-8 ring-blue-300 opacity-75 z-0"
+      className={`overflow-hidden absolute w-[400px] h-[400px] rounded-full blur-[400px] ring-8 ring-blue-300 opacity-${opacity} z-0`}
       style={{ top: `${top}px`, left: `${left}px`, right: `${right}px`, backgroundColor: color }}
     ></div>
   );
@@ -35,10 +44,7 @@ export default function DashboardWrapper({ children }: { children: React.ReactNo
         hover:bg-gradient-to-r from-[#18223b] to-[#403640]
         rounded-xl hover:scale-110 transition-all`}
       >
-        <div
-          className="flex flex-row text-[#8b8ba0] place-items-center text-2xl gap-x-4"
-          style={{ fontFamily: "Sequel Sans" }}
-        >
+        <div className="flex flex-row text-[#8b8ba0] place-items-center text-2xl gap-x-4">
           {icon}
           <h2 className={`${mode === text ? "text-white" : ""} py-3 group-hover:text-white`}>{text}</h2>
         </div>
@@ -64,9 +70,13 @@ export default function DashboardWrapper({ children }: { children: React.ReactNo
       </Head>
 
       <div className="bg-[#1b1831] relative h-max w-full overflow-hidden">
-        <div className="overflow-hidden absolute z-0 w-full h-full">
+        {/* uninteractable and at the very back */}
+        <div className="overflow-hidden absolute z-0 w-full h-full pointer-events-none">
           <BlurCircles top="0" left="20" color="#556296" />
-          <BlurCircles top="1000" right="20" color="#75538f" left={""} />
+          <BlurCircles top="0" right="20" color="#e2c079" opacity={25} left={""} />
+          <BlurCircles top="0" right="1000" color="#0e74bf" opacity={50} left={""} />
+          <BlurCircles top="2000" right="20" color="#75538f" left={""} />
+          <BlurCircles top="4000" left="20" color="#7553ff" />
         </div>
         <div className="flex flex-row min-h-screen z-20">
           <div className="p-8 bg-[#161627] z-20">
@@ -81,7 +91,12 @@ export default function DashboardWrapper({ children }: { children: React.ReactNo
               <SidebarButton text="Multiplayer" icon={<IoPeopleSharp size={32} />} src="/multiplayer" />
             </ul>
           </div>
-          <div className="flex flex-col w-full h-full">{children}</div>
+          <div className="flex flex-col w-full h-full">
+            <div className="px-12 pt-8">
+              <SearchBar></SearchBar>
+            </div>
+            {children}
+          </div>
         </div>
       </div>
     </>
