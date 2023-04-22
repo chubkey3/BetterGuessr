@@ -94,17 +94,43 @@ const roundEnd = async (
   var distance;
   var round;
 
+  let team1_users = [];
+  let team2_users = [];
+  let team1_tempguesses = room.team1_tempguesses;
+  let team2_tempguesses = room.team2_tempguesses;
+  let team1_tempguessesmade = [];
+  let team2_tempguessesmade = [];
+
   for (let i = 0; i < team1_guesses.length; i++) {
     distance = getDistance(team1_guesses[i], room.location);
     if (distance < team1_guess) {
       team1_guess = distance;
     }
+    team1_users.push(team1_guesses[i].user)
   }
 
   for (let i = 0; i < team2_guesses.length; i++) {
     distance = getDistance(team2_guesses[i], room.location);
     if (distance < team2_guess) {
       team2_guess = distance;
+    }
+    team2_users.push(team2_guesses[i].user)
+  }
+
+  //console.log(Object.keys(team1_tempguesses), Object.keys(team2_tempguesses), team1_users, team2_users)
+  for (var key in team1_tempguesses){
+    distance = getDistance(team1_tempguesses[key], room.location)
+    if (distance < team1_guess && !(team1_users.includes(key))){
+      team1_guess = distance;
+      team1_tempguessesmade.push({lat: team1_tempguesses[key].lat, lng: team1_tempguesses[key].lng, user: key})
+    }
+  }
+
+  for (var key in team2_tempguesses){
+    distance = getDistance(team2_tempguesses[key], room.location)
+    if (distance < team2_guess && !(team2_users.includes(key))){
+      team2_guess = distance;
+      team2_tempguessesmade.push({lat: team2_tempguesses[key].lat, lng: team2_tempguesses[key].lng, user: key})
     }
   }
 
@@ -125,14 +151,13 @@ const roundEnd = async (
       )
     );
   }
-
   io.to(room_name).emit("round_over", {
-    team1_guesses: room.team1_guesses,
-    team2_guesses: room.team2_guesses,
+    team1_guesses: room.team1_guesses.concat(team1_tempguessesmade),
+    team2_guesses: room.team2_guesses.concat(team2_tempguessesmade),
     team1_health: team1_health,
     team2_health: team2_health,
-    team1_distance: team1_guesses.length > 0 ? team1_guess : null,
-    team2_distance: team2_guesses.length > 0 ? team2_guess : null,
+    team1_distance: Object.keys(team1_tempguesses).length > 0 ? team1_guess : null,
+    team2_distance: Object.keys(team2_tempguesses).length > 0 ? team2_guess : null,
   });
 
   if (team1_health <= 0) {
@@ -176,6 +201,8 @@ const roundEnd = async (
     team1_guesses: [],
     team2_guesses: [],
     round: round,
+    team1_tempguesses: {},
+    team2_tempguesses: {}
   });
 };
 
@@ -409,6 +436,35 @@ io.on("connection", (socket: any) => {
     }
   });
 
+  socket.on("temp_guess", async (r: any) => {
+    const req: { user: string; room: string; guess: LocationData } = parseData(r);
+
+    let room = await findRoom(req.room);
+
+    if (!room) {
+      socket.emit("room_not_found");
+    } else {
+      if (room.started) {
+        let team1_tempguesses = room.team1_tempguesses
+        let team2_tempguesses = room.team2_tempguesses
+
+        if (room.team1_users.includes(req.user)){
+          
+          team1_tempguesses[req.user] = req.guess
+
+        } else if (room.team2_users.includes(req.user)){
+          team2_tempguesses[req.user] = req.guess
+
+        }
+
+        updateRoom(req.room, { team1_tempguesses: team1_tempguesses, team2_tempguesses: team2_tempguesses})
+
+      } else {
+        socket.emit("room_not_started");
+      }
+    }
+  })
+
   socket.on("disconnect", async () => {
     if (socket.id in activeUsers) {
       const room_name = activeUsers[socket.id].room;
@@ -453,6 +509,8 @@ if (process.env.PROD !== "production") {
   updateRoom("abc", {
     team1_guesses: [],
     team2_guesses: [],
+    team1_tempguesses: {},
+    team2_tempguesses: {},
     team1_users: [],
     team2_users: [],
     started: false,
@@ -483,6 +541,8 @@ app.get("/reset", (req: any, res: any) => {
   updateRoom("abc", {
     team1_guesses: [],
     team2_guesses: [],
+    team1_tempguesses: {},
+    team2_tempguesses: {},
     team1_users: [],
     team2_users: [],
     started: false,

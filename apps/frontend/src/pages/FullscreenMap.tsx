@@ -23,6 +23,7 @@ const mapOptions = {
   fullscreenControl: false,
   mapTypeControl: false,
   streetViewControl: false,
+  gestureHandling: "greedy",
   minZoom: 2,
 };
 

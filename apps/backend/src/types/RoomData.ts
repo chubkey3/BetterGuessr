@@ -12,6 +12,8 @@ interface RoomData {
         lng: number,
         user: string
     }[],
+    team1_tempguesses: any,
+    team2_tempguesses: any,
     room_id: string,
     team1_users: string[],
     team2_users: string[],

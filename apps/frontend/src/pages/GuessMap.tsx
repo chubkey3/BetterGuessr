@@ -13,6 +13,7 @@ const mapOptions = {
   fullscreenControl: false,
   mapTypeControl: false,
   streetViewControl: false,
+  gestureHandling: "greedy",
   minZoom: 1,
 };
 
@@ -75,7 +76,9 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
   const onMapClick = useCallback(
     (e: any) => {
       if (!guessed) {
-        setTempmarker({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+        let guess = { lat: e.latLng.lat(), lng: e.latLng.lng() }
+        setTempmarker(guess);
+        socket.emit("temp_guess", {user: user, room: room, guess: guess})
       }
     },
     [guessed]

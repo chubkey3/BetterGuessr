@@ -109,6 +109,7 @@ const Room = () => {
             socket.on('round_over', (data) => {
                 setRoundEnd(true)
                 setHealth({ team1: data.team1_health, team2: data.team2_health })
+                setMarkers(data.team1_guesses.concat(data.team2_guesses))
 
                 if (data.team1_health > 0 && data.team2_health > 0){
                     setCountdown(5)
