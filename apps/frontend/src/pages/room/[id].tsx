@@ -198,13 +198,13 @@ const Room = () => {
                 <link rel="icon" href="/marker.png" />
             </Head>
             {!started ? (user ? 
-            <Flex justifyContent={'space-around'} fontSize={'20px'} fontWeight={'bold'} alignItems={'center'} flexDir={'column'}>
+            <Flex justifyContent={'space-around'} fontSize={'20px'} fontWeight={'bold'} alignItems={'center'} flexDir={'column'} background={'linear-gradient(to right, #6A82FB, #FC5C7D)'} h={'100vh'}>
                 <Flex alignItems={'baseline'}>
-                    <Text fontSize={'46px'} fontWeight={'bold'} marginBottom={'5vh'} marginTop={'3vh'}>BetterGuessr</Text>
+                    <Text color={'white'} fontSize={'46px'} fontWeight={'bold'} marginBottom={'5vh'} marginTop={'3vh'}>BetterGuessr</Text>
                     <Image width={40} height={40} alt={'BetterGuessr Logo'} src="/marker.png" />
                 </Flex>
                 {(message === 'Connected') ? <h1 className="good_message">Status: {message}</h1> : <h1 className="bad_message">Status: {message}</h1>}
-                <Flex justifyContent={'space-between'} marginTop={'5vh'} w={'80vw'} maxW={'200px'} h={'20vh'} alignItems={'flex-start'}>
+                <Flex justifyContent={'space-between'} marginTop={'5vh'} w={'80vw'} maxW={'200px'} h={'20vh'} alignItems={'flex-start'} color={'white'}>
                     <Flex flexDir={'column'} justifyContent={'center'} alignItems={'center'}>
                         <h1>Team 1</h1>
                         {team1?.map((user) => (
@@ -218,18 +218,20 @@ const Room = () => {
                         ))}
                     </Flex>
                 </Flex>
-                <ThemeButton callback={switchTeams}>Switch Team</ThemeButton>
-                <ThemeButton callback={startRoom}>Start</ThemeButton>
+                <Flex w={'50vw'} maxW={'450px'} justifyContent={'space-between'}>
+                    <ThemeButton callback={switchTeams}>Switch Team</ThemeButton>
+                    <ThemeButton callback={startRoom}>Start</ThemeButton>
+                </Flex>
             </Flex> :
-                <div className="register">
-                    <h1>Pick Name</h1>
-                    <Input maxW={'80vw'} autoFocus value={userInput} onChange={(e) => { setUserInput(e.target.value) }} onKeyDown={(e) => {
+                <Flex justifyContent={'center'} fontSize={'36px'} fontWeight={'bold'} flexDir={'column'} alignItems={'center'} background={'linear-gradient(to right, #6A82FB, #FC5C7D)'} h={'100vh'}>
+                    <Text color={'white'}>Pick Name </Text>
+                    <Input background={'white'} borderRadius={'15px'} p={'10px'} marginTop={'2vh'} w={'80vw'} maxW={'300px'} autoFocus value={userInput} onChange={(e) => { setUserInput(e.target.value) }} onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             setUser(userInput)
                         }
                     }} />
                     <button className="but" onClick={() => { setUser(userInput) }}>Join</button>
-                </div>
+                </Flex>
             )
                 : center && <div className="main-wrapper" style={styles}>
                     <div className="overhead-display">

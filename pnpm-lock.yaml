@@ -108,6 +108,9 @@ importers:
         specifier: 4.9.5
         version: 4.9.5
     devDependencies:
+      '@types/express':
+        specifier: ^4.17.17
+        version: 4.17.17
       autoprefixer:
         specifier: ^10.4.13
         version: 10.4.13(postcss@8.4.21)
