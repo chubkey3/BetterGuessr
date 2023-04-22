@@ -11,6 +11,8 @@ const data = require("./locations/World.json");
 
 import Room from "./models/Room";
 
+import {Request, Response} from 'express';
+
 //types
 import LocationData from "./types/LocationData";
 import RoomData from "./types/RoomData";
@@ -529,15 +531,15 @@ app.use(compression());
 app.use(express.json());
 app.use(cors());
 
-app.get("/", (req: any, res: any) => {
+app.get("/", (req: Request, res: Response) => {
   res.send("Betterguessr backend service.");
 });
 
-app.get("/join", (req: any, res: any) => {
+app.get("/join", (req: Request, res: Response) => {
   res.send(randomUUID());
 });
 
-app.get("/reset", (req: any, res: any) => {
+app.get("/reset", (req: Request, res: Response) => {
   updateRoom("abc", {
     team1_guesses: [],
     team2_guesses: [],

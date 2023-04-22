@@ -6,8 +6,10 @@ import StreetView from "../StreetView";
 import GuessMap from '../GuessMap'
 import styles from "@/styles/Home.module.css";
 import Head from "next/head";
-import { Box } from "@chakra-ui/react";
+import { Box, Flex, Input, Text } from "@chakra-ui/react";
 import TextBox from "@/components/TextBox";
+import Image from "next/image";
+import ThemeButton from "@/components/ThemeButton";
 
 const Room = () => {
     const router = useRouter();
@@ -195,32 +197,33 @@ const Room = () => {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/marker.png" />
             </Head>
-            {!started ? (user ? <div className="lobby">
-                <div className="heading">
-                    <h1 className="title">BetterGuessr</h1>
-                    <img src="/marker.png" />
-                </div>
+            {!started ? (user ? 
+            <Flex justifyContent={'space-around'} fontSize={'20px'} fontWeight={'bold'} alignItems={'center'} flexDir={'column'}>
+                <Flex alignItems={'baseline'}>
+                    <Text fontSize={'46px'} fontWeight={'bold'} marginBottom={'5vh'} marginTop={'3vh'}>BetterGuessr</Text>
+                    <Image width={40} height={40} alt={'BetterGuessr Logo'} src="/marker.png" />
+                </Flex>
                 {(message === 'Connected') ? <h1 className="good_message">Status: {message}</h1> : <h1 className="bad_message">Status: {message}</h1>}
-                <div className="teams-container">
-                    <div className="team-container">
+                <Flex justifyContent={'space-between'} marginTop={'5vh'} w={'80vw'} maxW={'200px'} h={'20vh'} alignItems={'flex-start'}>
+                    <Flex flexDir={'column'} justifyContent={'center'} alignItems={'center'}>
                         <h1>Team 1</h1>
                         {team1?.map((user) => (
                             <h2 key={user}>{user}</h2>
                         ))}
-                    </div>
-                    <div className="team-container">
+                    </Flex>
+                    <Flex flexDir={'column'} justifyContent={'center'} alignItems={'center'}>
                         <h1>Team 2</h1>
                         {team2?.map((user) => (
                             <h2 key={user}>{user}</h2>
                         ))}
-                    </div>
-                </div>
-                <button onClick={switchTeams} className={'but switch-teams-button'}>switch team</button>
-                <button onClick={startRoom} className={'but'}>Start</button>
-            </div> :
+                    </Flex>
+                </Flex>
+                <ThemeButton callback={switchTeams}>Switch Team</ThemeButton>
+                <ThemeButton callback={startRoom}>Start</ThemeButton>
+            </Flex> :
                 <div className="register">
                     <h1>Pick Name</h1>
-                    <input autoFocus className="user-input" value={userInput} onChange={(e) => { setUserInput(e.target.value) }} onKeyDown={(e) => {
+                    <Input maxW={'80vw'} autoFocus value={userInput} onChange={(e) => { setUserInput(e.target.value) }} onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             setUser(userInput)
                         }
