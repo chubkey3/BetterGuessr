@@ -37,6 +37,8 @@ function MyComponent({ center }: Props) {
     panControlOptions: {
       position: 6,
     },
+    motionTracking: false,
+    motionTrackingControl: false
   };
 
   const { isLoaded } = useJsApiLoader({

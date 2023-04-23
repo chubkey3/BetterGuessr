@@ -1,3 +1,4 @@
+import ThemeButton from "@/components/ThemeButton";
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Socket } from "socket.io-client";
@@ -122,9 +123,9 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
           />
         )}
       </GoogleMap>
-      <button onClick={placeMarker} className={!tempmarker ? "disabled-button" : "but"}>
+      <ThemeButton callback={placeMarker} disabled={!tempmarker}>
         {!tempmarker ? (guessed ? "Guess" : "Place pin to guess") : "Guess"}
-      </button>
+      </ThemeButton>
     </div>
   ) : (
     <></>

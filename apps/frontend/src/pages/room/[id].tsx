@@ -198,23 +198,23 @@ const Room = () => {
                 <link rel="icon" href="/marker.png" />
             </Head>
             {!started ? (user ? 
-            <Flex justifyContent={'space-around'} fontSize={'20px'} fontWeight={'bold'} alignItems={'center'} flexDir={'column'} background={'linear-gradient(to right, #6A82FB, #FC5C7D)'} h={'100vh'}>
+            <Flex justifyContent={'space-around'} fontSize={'20px'} fontWeight={'bold'} alignItems={'center'} flexDir={'column'} background={'linear-gradient(to right, #6A82FB, #FC5C7D)'} h={'100vh'} maxHeight={'-webkit-fill-available'}>
                 <Flex alignItems={'baseline'}>
-                    <Text color={'white'} fontSize={'46px'} fontWeight={'bold'} marginBottom={'5vh'} marginTop={'3vh'}>BetterGuessr</Text>
-                    <Image width={40} height={40} alt={'BetterGuessr Logo'} src="/marker.png" />
-                </Flex>
+                    <Text color={'white'} mr={1} fontSize={'46px'} fontWeight={'bold'} marginBottom={'5vh'} marginTop={'3vh'} textShadow={'0 0 3px #FF0000, 0 0 5px #EF0000;'}>BetterGuessr</Text>
+                    <Image width={45} height={45} alt={'BetterGuessr Logo'} src="/marker.png" />
+                </Flex>                
                 {(message === 'Connected') ? <h1 className="good_message">Status: {message}</h1> : <h1 className="bad_message">Status: {message}</h1>}
                 <Flex justifyContent={'space-between'} marginTop={'5vh'} w={'80vw'} maxW={'200px'} h={'20vh'} alignItems={'flex-start'} color={'white'}>
                     <Flex flexDir={'column'} justifyContent={'center'} alignItems={'center'}>
                         <h1>Team 1</h1>
-                        {team1?.map((user) => (
-                            <h2 key={user}>{user}</h2>
+                        {team1?.map((username) => (
+                            <Text color={(username === user) ? 'lime' : 'white'} key={username}>{username}</Text>
                         ))}
                     </Flex>
                     <Flex flexDir={'column'} justifyContent={'center'} alignItems={'center'}>
                         <h1>Team 2</h1>
-                        {team2?.map((user) => (
-                            <h2 key={user}>{user}</h2>
+                        {team2?.map((username) => (
+                            <Text color={(username === user) ? 'lime' : 'white'} key={username}>{username}</Text>
                         ))}
                     </Flex>
                 </Flex>
@@ -222,8 +222,16 @@ const Room = () => {
                     <ThemeButton callback={switchTeams}>Switch Team</ThemeButton>
                     <ThemeButton callback={startRoom}>Start</ThemeButton>
                 </Flex>
+                <Flex flexDir={'column'} alignItems={'center'} color={'white'} fontWeight={'bold'}>
+                    <Text>
+                        Logged in as
+                    </Text>
+                    <Text color={'lime'}>
+                        {user}
+                    </Text>
+                </Flex>
             </Flex> :
-                <Flex justifyContent={'center'} fontSize={'36px'} fontWeight={'bold'} flexDir={'column'} alignItems={'center'} background={'linear-gradient(to right, #6A82FB, #FC5C7D)'} h={'100vh'}>
+                <Flex h={'100vh'} maxHeight={'-webkit-fill-available'} justifyContent={'center'} fontSize={'36px'} fontWeight={'bold'} flexDir={'column'} alignItems={'center'} background={'linear-gradient(to right, #6A82FB, #FC5C7D)'}>
                     <Text color={'white'}>Pick Name </Text>
                     <Input background={'white'} borderRadius={'15px'} p={'10px'} marginTop={'2vh'} w={'80vw'} maxW={'300px'} autoFocus value={userInput} onChange={(e) => { setUserInput(e.target.value) }} onKeyDown={(e) => {
                         if (e.key === 'Enter') {
