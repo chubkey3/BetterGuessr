@@ -11,6 +11,7 @@ const containerStyle = {
   width: "100vw",
   height: "100vh",
   zIndex: "1",
+  minHeight: "-webkit-fill-available"
 };
 
 function MyComponent({ center }: Props) {
