@@ -9,9 +9,8 @@ interface Props {
 
 const containerStyle = {
   width: "100vw",
-  height: "100vh",
-  zIndex: "1",
-  minHeight: "-webkit-fill-available"
+  height: "100%",
+  zIndex: "1"
 };
 
 function MyComponent({ center }: Props) {
