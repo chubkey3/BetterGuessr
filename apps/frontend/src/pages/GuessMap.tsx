@@ -3,6 +3,7 @@ import { IconButton, useMediaQuery } from "@chakra-ui/react";
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Socket } from "socket.io-client";
+import { GrMap } from 'react-icons/gr'
 
 interface Props {
   setParentMarkers: any;
@@ -98,7 +99,7 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
 
   return isLoaded ? (!isMobile ? 
     (
-      <IconButton as={GrMap} aria-label="f" onClick={/>
+      <IconButton as={GrMap} aria-label="f"/>
     )
     
     : (
