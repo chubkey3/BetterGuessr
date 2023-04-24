@@ -101,7 +101,7 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
     (
       <IconButton as={GrMap} aria-label="f"/>
     )
-    
+      
     : (
     <div className="guess-map-wrapper">
       <GoogleMap

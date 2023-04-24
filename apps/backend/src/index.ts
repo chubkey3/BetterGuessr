@@ -55,8 +55,8 @@ const activeUsers: { [key: string]: { room: string; user: string } } = {}; //con
 
 const roomResetJobs: { [key: string]: ReturnType<typeof setInterval>} = {};
 
-const resetRoom = (room: string) => {
-  updateRoom(room, {
+const resetRoom = async (room: string) => {
+  await updateRoom(room, {
     team1_guesses: [],
     team2_guesses: [],
     team1_tempguesses: {},
@@ -540,6 +540,8 @@ mongoose.set("strictQuery", true);
 if (process.env.PROD !== "production") {
   //new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000, location: {lat: 0, lng: 0}}).save()
   resetRoom("abc")
+  .then(() => console.log('Success!'))
+  .catch(() => console.log('Error!'))
 }
 
 //middleware
