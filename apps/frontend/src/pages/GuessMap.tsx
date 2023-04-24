@@ -1,4 +1,5 @@
 import ThemeButton from "@/components/ThemeButton";
+import { IconButton, useMediaQuery } from "@chakra-ui/react";
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Socket } from "socket.io-client";
@@ -93,7 +94,14 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
     }
   };
 
-  return isLoaded ? (
+  const isMobile: boolean[] = useMediaQuery('(min-width: 500px)')
+
+  return isLoaded ? (!isMobile ? 
+    (
+      <IconButton as={GrMap} aria-label="f" onClick={/>
+    )
+    
+    : (
     <div className="guess-map-wrapper">
       <GoogleMap
         center={mapCenter}
@@ -126,7 +134,7 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
       <ThemeButton callback={placeMarker} disabled={!tempmarker}>
         {!tempmarker ? (guessed ? "Guess" : "Place pin to guess") : "Guess"}
       </ThemeButton>
-    </div>
+    </div>)
   ) : (
     <></>
   );

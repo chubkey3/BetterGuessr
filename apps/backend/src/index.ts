@@ -53,6 +53,25 @@ function parseData(data: any) {
 
 const activeUsers: { [key: string]: { room: string; user: string } } = {}; //convert to db?
 
+const roomResetJobs: { [key: string]: ReturnType<typeof setInterval>} = {};
+
+const resetRoom = (room: string) => {
+  updateRoom(room, {
+    team1_guesses: [],
+    team2_guesses: [],
+    team1_tempguesses: {},
+    team2_tempguesses: {},
+    team1_users: [],
+    team2_users: [],
+    started: false,
+    guessed: 0,
+    team1_health: 5000,
+    team2_health: 5000,
+    countdown_time: 15,
+    round: 1,
+  })
+}
+
 const findRoom = async (room: string): Promise<RoomData> => {
   const roomData = await Room.findOne({ room_name: room });
 
@@ -171,6 +190,10 @@ const roundEnd = async (
       io.to(room_name).emit("win", { team: "team2", users: room.team2_users });
       updateRoom(room_name, { started: false, location: { lat: 0, lng: 0 }, team1_users: [], team2_users: [] });
     }, 5000);
+
+    clearTimeout(roomResetJobs[room_name])
+    delete roomResetJobs[room_name]
+
   } else if (team2_health <= 0) {
     team1_health = 5000;
     team2_health = 5000;
@@ -180,6 +203,10 @@ const roundEnd = async (
       io.to(room_name).emit("win", { team: "team1", users: room.team1_users });
       updateRoom(room_name, { started: false, location: { lat: 0, lng: 0 }, team1_users: [], team2_users: [] });
     }, 5000);
+
+    clearTimeout(roomResetJobs[room_name])
+    delete roomResetJobs[room_name]
+
   } else {
     round = room.round + 1;
 
@@ -331,6 +358,10 @@ io.on("connection", (socket: any) => {
             let location = getRandomLocation();
 
             updateRoom(req.room, { started: true, location: location });
+
+            roomResetJobs[req.room] = setTimeout(() => {
+              resetRoom(req.room)
+            }, 1000*60*60) //rooms reset after an hour
 
             io.to(req.room).emit("new_round", {
               location: location,
@@ -508,22 +539,7 @@ mongoose.set("strictQuery", true);
 
 if (process.env.PROD !== "production") {
   //new Room({room_name: "abc", team1_guesses: [], team2_guesses: [], room_id: crypto.randomUUID(), team1_users: [], team2_users: [], guessed: 0, started: false, team1_health: 5000, team2_health: 5000, location: {lat: 0, lng: 0}}).save()
-  updateRoom("abc", {
-    team1_guesses: [],
-    team2_guesses: [],
-    team1_tempguesses: {},
-    team2_tempguesses: {},
-    team1_users: [],
-    team2_users: [],
-    started: false,
-    guessed: 0,
-    team1_health: 5000,
-    team2_health: 5000,
-    countdown_time: 15,
-    round: 1,
-  }).then(() => {
-    console.log("updated db");
-  });
+  resetRoom("abc")
 }
 
 //middleware
@@ -540,26 +556,7 @@ app.get("/join", (req: Request, res: Response) => {
 });
 
 app.get("/reset", (req: Request, res: Response) => {
-  updateRoom("abc", {
-    team1_guesses: [],
-    team2_guesses: [],
-    team1_tempguesses: {},
-    team2_tempguesses: {},
-    team1_users: [],
-    team2_users: [],
-    started: false,
-    guessed: 0,
-    team1_health: 5000,
-    team2_health: 5000,
-    countdown_time: 15,
-    round: 1,
-  })
-    .then(() => {
-      res.send("Successfully Resetted!");
-    })
-    .catch(() => {
-      res.send("Error Occurred Resetting!");
-    });
+  resetRoom("abc")
 });
 
 /*
