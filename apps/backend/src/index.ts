@@ -559,6 +559,8 @@ app.get("/join", (req: Request, res: Response) => {
 
 app.get("/reset", (req: Request, res: Response) => {
   resetRoom("abc")
+  .then(() => res.send('Success!'))
+  .catch(() => res.send('Failure!'))
 });
 
 /*
