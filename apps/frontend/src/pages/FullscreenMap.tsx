@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, memo } from "react";
 import { GoogleMap, Marker, useJsApiLoader, Polyline } from "@react-google-maps/api";
+import { Flex, Text } from "@chakra-ui/react";
 
 interface Props {
   markers: { lat: number; lng: number; user: string }[];
@@ -17,7 +18,9 @@ interface Props {
 const containerStyle = {
   width: "50vw",
   height: "50vh",
-  minWidth: "300px"
+  minWidth: "300px",
+  borderRadius: "15px",
+  border: "2px solid black"
 };
 
 const mapOptions = {
@@ -70,8 +73,8 @@ function FullscreenMap({
   }, []);
 
   return isLoaded ? (
-    <div className={"overlay"}>
-      <h1>Round {round}</h1>
+    <Flex zIndex={1} w={'100vw'} h={'100vh'} maxH={'-webkit-fill-available'} backdropFilter={'blur(2px)'} bgColor={'rgba(0,0,0,0.6)'} justifyContent={'center'} alignItems={'center'} flexDir={'column'} pos={'absolute'} color={'white'} fontSize={'22px'} fontWeight={'bold'}>
+      <Text fontSize={'2xl'}>Round {round}</Text>
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={center}
@@ -99,51 +102,51 @@ function FullscreenMap({
           <Polyline key={marker.lat} path={[marker, center]} />
         ))}
         <></>
-      </GoogleMap>
-      <div className="health-display">
-        {team === "team1" ? (
-          <div className="health-display-container">
-            <h1>Team 1: {team1_health}</h1>
+      </GoogleMap>  
+      <Flex w={'45vw'} minW={'300px'} justifyContent={'space-between'} marginTop={'3vh'} marginBottom={'5vh'}>
+        {team === "team1" ? (          
+          <Flex flexDir={'column'} alignItems={'center'} fontSize={'30px'}>
+            <Text fontSize={'xl'}>Team 1: {team1_health}</Text>
             {team1_distance && (
-              <h2>
+              <Text fontSize={'lg'}>
                 {team1_distance >= 1000 ? Math.ceil(team1_distance / 1000) + " km" : Math.ceil(team1_distance) + " m"}
-              </h2>
+              </Text>
             )}
-          </div>
+          </Flex>
         ) : (
-          <div className="health-display-container">
-            <h1>Team 2: {team2_health}</h1>
+          <Flex flexDir={'column'} alignItems={'center'} fontSize={'30px'}>
+            <Text fontSize={'xl'}>Team 2: {team2_health}</Text>
             {team2_distance && (
-              <h2>
+              <Text fontSize={'lg'}>
                 {team2_distance >= 1000 ? Math.ceil(team2_distance / 1000) + " km" : Math.ceil(team2_distance) + " m"}
-              </h2>
+              </Text>
             )}
-          </div>
+          </Flex>
         )}
         {team === "team1" ? (
-          <div className="health-display-container">
-            <h1>Team 2: {team2_health}</h1>
+          <Flex flexDir={'column'} alignItems={'center'} fontSize={'30px'}>
+            <Text fontSize={'xl'}>Team 2: {team2_health}</Text>
             {team2_distance && (
-              <h2>
+              <Text fontSize={'lg'}>
                 {team2_distance >= 1000 ? Math.ceil(team2_distance / 1000) + " km" : Math.ceil(team2_distance) + " m"}
-              </h2>
+              </Text>
             )}
-          </div>
+          </Flex>
         ) : (
-          <div className="health-display-container">
-            <h1>Team 1: {team1_health}</h1>
+          <Flex flexDir={'column'} alignItems={'center'} fontSize={'30px'}>
+            <Text fontSize={'xl'}>Team 1: {team1_health}</Text>
             {team1_distance && (
-              <h2>
+              <Text fontSize={'lg'}>
                 {team1_distance >= 1000 ? Math.ceil(team1_distance / 1000) + " km" : Math.ceil(team1_distance) + " m"}
-              </h2>
+              </Text>
             )}
-          </div>
+          </Flex>
         )}
-      </div>
-      <h3>Damage Multiplier</h3>
-      <h4>{multiplier}x</h4>
-      {countdown > 0 && <h1>{`New Round in ${countdown}`}</h1>}
-    </div>
+      </Flex>
+      <Text fontSize={'xl'}>Damage Multiplier</Text>
+      <Text fontSize={'lg'}>{multiplier}x</Text>
+      {countdown > 0 && <Text fontSize={'xl'} marginTop={'5vh'}>{`New Round in ${countdown}`}</Text>}
+    </Flex>
   ) : (
     <></>
   );

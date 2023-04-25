@@ -287,7 +287,7 @@ const Room = () => {
                         }
                     </div>}
                     <StreetView key={center.lat} center={center} socket={socket} />
-                    <GuessMap key={center.lng} setParentMarkers={setMarkers} socket={socket} user={user} room={id} />
+                    {!roundEnd && <GuessMap key={center.lng} setParentMarkers={setMarkers} socket={socket} user={user} room={id} />}
                     {roundEnd && <FullscreenMap markers={markers} center={center} team1_health={health?.team1} team2_health={health?.team2} team1_distance={team1distance} team2_distance={team2distance} countdown={countdown} round={round} multiplier={multiplier} team={user && team1?.includes(user) ? 'team1' : 'team2'} />}
                     {win && <div className="win-overlay">
                         <text>{win}</text>
