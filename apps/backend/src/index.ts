@@ -103,7 +103,7 @@ const roundEnd = async (
   team1_guesses: { lat: number; lng: number; user: string }[],
   team2_guesses: { lat: number; lng: number; user: string }[]
 ) => {
-  let room = await findRoom(room_name);
+  let room = await findRoom(room_name);  
 
   //calculate health
   let team1_guess = 99999999999;
@@ -171,10 +171,11 @@ const roundEnd = async (
           calculateMultiplier(room.round) * (calculatePoints(team2_guess / 1000) - calculatePoints(team1_guess / 1000))
       )
     );
-  }
+  }  
+  
   io.to(room_name).emit("round_over", {
-    team1_guesses: room.team1_guesses.concat(team1_tempguessesmade),
-    team2_guesses: room.team2_guesses.concat(team2_tempguessesmade),
+    team1_guesses: team1_guesses.concat(team1_tempguessesmade),
+    team2_guesses: team2_guesses.concat(team2_tempguessesmade),
     team1_health: team1_health,
     team2_health: team2_health,
     team1_distance: Object.keys(team1_tempguesses).length > 0 ? team1_guess : null,
@@ -385,8 +386,7 @@ io.on("connection", (socket: any) => {
   socket.on("guess", async (r: any) => {
     const req: { user: string; room: string; guess: LocationData } = parseData(r);
 
-    let room = await findRoom(req.room);
-
+    let room = await findRoom(req.room);    
     if (!room) {
       socket.emit("room_not_found");
     } else {
@@ -395,7 +395,7 @@ io.on("connection", (socket: any) => {
           room.team1_guesses.filter((e) => e.user === req.user).length > 0 ||
           room.team2_guesses.filter((e) => e.user === req.user).length > 0
         ) {
-          socket.emit("user_guessed");
+          socket.emit("user_guessed");          
         } else {
           let temp: LocationData[] = [];
 
@@ -415,7 +415,7 @@ io.on("connection", (socket: any) => {
             team2_guesses.push({ lat: req.guess.lat, lng: req.guess.lng, user: req.user });
             updateRoom(req.room, { guessed: room.guessed + 1, team2_guesses: temp });
           }
-
+          
           if (guessed === room.team1_users.length + room.team2_users.length && guessed !== 1) {
             clearInterval(roundCountdown);
             roundEnd(req.room, team1_guesses, team2_guesses);
@@ -430,7 +430,7 @@ io.on("connection", (socket: any) => {
                 team: room.team2_users,
               });
             }
-          } else if (guessed === 1) {
+          } else if (guessed === 1) {            
             clearInterval(roundCountdown);
             roundCountdown = setTimeout(
               () => roundEnd(req.room, team1_guesses, team2_guesses),

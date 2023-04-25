@@ -17,6 +17,7 @@ interface Props {
 const containerStyle = {
   width: "50vw",
   height: "50vh",
+  minWidth: "300px"
 };
 
 const mapOptions = {
