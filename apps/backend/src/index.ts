@@ -362,6 +362,8 @@ io.on("connection", (socket: any) => {
 
             roomResetJobs[req.room] = setTimeout(() => {
               resetRoom(req.room)
+              clearTimeout(roomResetJobs[req.room])
+              delete roomResetJobs[req.room]
             }, 1000*60*60) //rooms reset after an hour
 
             io.to(req.room).emit("new_round", {
