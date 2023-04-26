@@ -1,13 +1,13 @@
 import Head from "next/head";
-import { useLayoutEffect } from "react";
+import { useEffect } from "react";
 
 export default function Home() {
 
-useLayoutEffect(() => {
+  useEffect(() => {
 
-window.location.href = "/room/abc"
+    window.location.href = "/room/abc"
 
-}, [])
+  }, [])
 
   return (
     <>
@@ -17,8 +17,6 @@ window.location.href = "/room/abc"
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/marker.png" />
       </Head>
-      <h1>BetterGuessr</h1>
-      <h2>Go to /room/abc to play!</h2>
     </>
   );
 }

@@ -406,6 +406,7 @@ io.on("connection", (socket: any) => {
 
           let guessed = room.guessed + 1;
 
+          //adding last guess
           if (room.team1_users.includes(req.user)) {
             temp = room.team1_guesses;
             temp.push({ lat: req.guess.lat, lng: req.guess.lng, user: req.user });
@@ -418,7 +419,12 @@ io.on("connection", (socket: any) => {
             updateRoom(req.room, { guessed: room.guessed + 1, team2_guesses: temp });
           }
           
+
+          //win detection
+
+          //all users guessed
           if (guessed === room.team1_users.length + room.team2_users.length && guessed !== 1) {
+
             clearInterval(roundCountdown);
             roundEnd(req.room, team1_guesses, team2_guesses);
             if (room.team1_users.includes(req.user)) {
@@ -432,7 +438,10 @@ io.on("connection", (socket: any) => {
                 team: room.team2_users,
               });
             }
-          } else if (guessed === 1) {            
+
+          //first guess (start countdown)
+          } else if (guessed === 1) {         
+
             clearInterval(roundCountdown);
             roundCountdown = setTimeout(
               () => roundEnd(req.room, team1_guesses, team2_guesses),
@@ -451,7 +460,10 @@ io.on("connection", (socket: any) => {
                 team: room.team2_users,
               });
             }
+
+            //between 2 and n-1 guesses done (including last guess)
           } else {
+
             if (room.team1_users.includes(req.user)) {
               io.to(req.room).emit("guess", {
                 guess: { lat: req.guess.lat, lng: req.guess.lng, user: req.user },
@@ -465,6 +477,7 @@ io.on("connection", (socket: any) => {
             }
           }
         }
+        
       } else {
         socket.emit("room_not_started");
       }
