@@ -78,7 +78,7 @@ const findRoom = async (room: string): Promise<RoomData> => {
   return roomData;
 };
 
-const updateRoom = async (room: string, data: any, callback?: any) => {
+const updateRoom = async (room: string, data: any, callback?: boolean) => {
   Room.findOneAndUpdate({ room_name: room }, data, { upsert: true }, async function (err: any) {
     if (!err && callback) {
       await updateUsers(room);
@@ -283,7 +283,7 @@ io.on("connection", (socket: any) => {
 
           team1_users.push(req.user);
 
-          await updateRoom(req.room, { team1_users: team1_users }, updateUsers(req.room));
+          await updateRoom(req.room, { team1_users: team1_users }, true);
         }
       } else if (room.team1_users.includes(req.user) || room.team2_users.includes(req.user)) {
         if (room.started) {
@@ -327,7 +327,7 @@ io.on("connection", (socket: any) => {
 
         team2_users.push(req.user);
 
-        await updateRoom(req.room, { team1_users: temp, team2_users: team2_users }, updateUsers(req.room));
+        await updateRoom(req.room, { team1_users: temp, team2_users: team2_users }, true);
       } else {
         for (var i = 0; i < room.team2_users.length; i++) {
           if (room.team2_users[i] === req.user) {
@@ -340,7 +340,7 @@ io.on("connection", (socket: any) => {
 
         team1_users.push(req.user);
 
-        await updateRoom(req.room, { team1_users: team1_users, team2_users: temp }, updateUsers(req.room));
+        await updateRoom(req.room, { team1_users: team1_users, team2_users: temp }, true);
       }
     }
   });
@@ -536,7 +536,7 @@ io.on("connection", (socket: any) => {
           }
         }
 
-        await updateRoom(room_name, { team1_users: temp1, team2_users: temp2 }, updateUsers(room_name));
+        await updateRoom(room_name, { team1_users: temp1, team2_users: temp2 }, true);
 
         delete activeUsers[socket.id];
       }
