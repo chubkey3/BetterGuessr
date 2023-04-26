@@ -29,18 +29,19 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const mapRef = useRef(null);
 
+  const updateMarkers = useCallback((val: {lat: number, lng: number, user: string}) => {
+    setMarkers([...markers, val])
+  }, [markers, setMarkers])
+
   useEffect(() => {
     socket.on("guess", (data) => {
-      setMarkers((prevMarkers) => {
-        if (data.team.includes(user)) {
-          return prevMarkers.concat(data.guess);
-        }
-        return prevMarkers;
-      });
+      
+      if (data.team.includes(user)) {
+        updateMarkers(data.guess)
+      }
 
-      setParentMarkers((prevMarkers: any) => {
-        return prevMarkers.concat(data.guess);
-      });
+      setParentMarkers(data.guess)
+
     });
   }, [setParentMarkers, socket]);
 
