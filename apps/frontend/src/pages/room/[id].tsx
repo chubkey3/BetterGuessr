@@ -6,7 +6,7 @@ import StreetView from "../StreetView";
 import GuessMap from '../GuessMap'
 import styles from "@/styles/Home.module.css";
 import Head from "next/head";
-import { Box, Flex, Input, Text } from "@chakra-ui/react";
+import { Box, Flex, Input, Text, useToast } from "@chakra-ui/react";
 import TextBox from "@/components/TextBox";
 import Image from "next/image";
 import ThemeButton from "@/components/ThemeButton";
@@ -38,6 +38,8 @@ const Room = () => {
     const [user, setUser] = useState<string>()
     const [userInput, setUserInput] = useState<string>("")
     const [roundEnd, setRoundEnd] = useState<boolean>(false)
+
+    const toast = useToast()
 
     useEffect(() => {
         if (router.query.user && typeof router.query.user === 'string') {
@@ -149,6 +151,15 @@ const Room = () => {
 
             socket.on('user_guessed', () => {
                 console.log('Already Guessed!')
+            })
+
+            socket.on('kicked', () => {
+                toast({
+                    title: 'Kicked',
+                    description: 'You were kicked for being inactive. Reload the page to rejoin.',
+                    status: "error",
+                    duration: null
+                })
             })
         }
     }, [socket, user])

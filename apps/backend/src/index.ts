@@ -16,6 +16,7 @@ import {Request, Response} from 'express';
 //types
 import LocationData from "./types/LocationData";
 import RoomData from "./types/RoomData";
+import { Socket } from "socket.io";
 
 const app = express();
 
@@ -96,7 +97,7 @@ const updateUsers = async (room: string) => {
   io.to(room).emit("room", { team1: updatedRoom.team1_users, team2: updatedRoom.team2_users });
 };
 
-const removeUser = async (room_name: string, user: string, id: string) => {
+const removeUser = async (room_name: string, user: string, socket: Socket) => {
     let room = await findRoom(room_name);
 
     if (!room.started) {
@@ -120,7 +121,9 @@ const removeUser = async (room_name: string, user: string, id: string) => {
 
       await updateRoom(room_name, { team1_users: temp1, team2_users: temp2 }, true);
 
-      delete activeUsers[id];
+      socket.emit('kicked')
+
+      delete activeUsers[socket.id];
     }
 }
 
@@ -290,7 +293,7 @@ const io = new Server(server, {
 
 var roundCountdown: any;
 
-io.on("connection", (socket: any) => {
+io.on("connection", (socket: Socket) => {
   socket.on("join", async (r: any) => {
     const req: { room: string; user: string } = parseData(r);
 
@@ -310,7 +313,7 @@ io.on("connection", (socket: any) => {
           activeUsers[socket.id] = { room: req.room, user: req.user };
 
           userResetJobs[req.user] = setTimeout(() => {
-            removeUser(req.room, req.user, socket.id)
+            removeUser(req.room, req.user, socket)
           }, 1000*60*5)
 
           let team1_users = room.team1_users;
@@ -362,7 +365,7 @@ io.on("connection", (socket: any) => {
         team2_users.push(req.user);
 
         await updateRoom(req.room, { team1_users: temp, team2_users: team2_users }, true);
-      } else {
+      } else if (room.team2_users.includes(req.user)) {
         for (var i = 0; i < room.team2_users.length; i++) {
           if (room.team2_users[i] === req.user) {
             continue;
@@ -475,7 +478,7 @@ io.on("connection", (socket: any) => {
                 guess: { lat: req.guess.lat, lng: req.guess.lng, user: req.user },
                 team: room.team1_users,
               });
-            } else {
+            } else if (room.team2_users.includes(req.user)) {
               io.to(req.room).emit("guess", {
                 guess: { lat: req.guess.lat, lng: req.guess.lng, user: req.user },
                 team: room.team2_users,
@@ -496,7 +499,7 @@ io.on("connection", (socket: any) => {
                 countdown: room.countdown_time,
                 team: room.team1_users,
               });
-            } else {
+            } else if(room.team2_users.includes(req.user)) {
               io.to(req.room).emit("guess", {
                 guess: { lat: req.guess.lat, lng: req.guess.lng, user: req.user },
                 countdown: room.countdown_time,
@@ -512,7 +515,7 @@ io.on("connection", (socket: any) => {
                 guess: { lat: req.guess.lat, lng: req.guess.lng, user: req.user },
                 team: room.team1_users,
               });
-            } else {
+            } else if (room.team2_users.includes(req.user)) {
               io.to(req.room).emit("guess", {
                 guess: { lat: req.guess.lat, lng: req.guess.lng, user: req.user },
                 team: room.team2_users,
