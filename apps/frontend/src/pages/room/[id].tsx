@@ -249,7 +249,7 @@ const Room = () => {
             </Flex> :
                 <Flex h={'100vh'} maxHeight={'-webkit-fill-available'} justifyContent={'center'} fontSize={'36px'} fontWeight={'bold'} flexDir={'column'} alignItems={'center'} background={'linear-gradient(to right, #6A82FB, #FC5C7D)'}>
                     <Text color={'white'}>Pick Name </Text>
-                    <Input background={'white'} borderRadius={'15px'} p={'10px'} marginTop={'2vh'} w={'80vw'} maxW={'300px'} autoFocus value={userInput} onChange={(e) => { setUserInput(e.target.value) }} onKeyDown={(e) => {
+                    <Input color={'black'} background={'white'} borderRadius={'15px'} p={'10px'} marginTop={'2vh'} w={'80vw'} maxW={'300px'} autoFocus value={userInput} onChange={(e) => { setUserInput(e.target.value) }} onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             setUser(userInput)
                         }
