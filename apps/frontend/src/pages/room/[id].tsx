@@ -6,7 +6,7 @@ import StreetView from "../StreetView";
 import GuessMap from '../GuessMap'
 import styles from "@/styles/Home.module.css";
 import Head from "next/head";
-import { Box, Flex, Input, Text, useToast } from "@chakra-ui/react";
+import { Flex, Input, Text, useToast } from "@chakra-ui/react";
 import TextBox from "@/components/TextBox";
 import Image from "next/image";
 import ThemeButton from "@/components/ThemeButton";
@@ -41,6 +41,13 @@ const Room = () => {
 
     const toast = useToast()
 
+    const eventListener = useCallback(
+        (event: any) => {                              
+          socket.disconnect()          
+        },
+        [socket]
+    );
+
     useEffect(() => {
         if (router.query.user && typeof router.query.user === 'string') {
             setUser(router.query.user)
@@ -67,13 +74,16 @@ const Room = () => {
 
     }, [id, user])
 
-    useEffect(() => {
-
-    }, [user])
+    useEffect(() => {        
+        window.addEventListener("beforeunload", eventListener);        
+    
+        return () => {
+          window.removeEventListener("beforeunload", eventListener);
+        };
+      }, [eventListener]);
 
     useEffect(() => { 
-        if (user){
-            console.log('hi')
+        if (user){            
             socket.on('room_not_found', () => {
                 setMessage('Room not Found')
             })
