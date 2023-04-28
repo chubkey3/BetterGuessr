@@ -55,6 +55,8 @@ const activeUsers: { [key: string]: { room: string; user: string } } = {}; //con
 
 const roomResetJobs: { [key: string]: ReturnType<typeof setInterval>} = {};
 
+const userResetJobs: { [key: string]: ReturnType<typeof setInterval>} = {};
+
 const resetRoom = async (room: string) => {
   await updateRoom(room, {
     team1_guesses: [],
@@ -93,6 +95,34 @@ const updateUsers = async (room: string) => {
 
   io.to(room).emit("room", { team1: updatedRoom.team1_users, team2: updatedRoom.team2_users });
 };
+
+const removeUser = async (room_name: string, user: string, id: string) => {
+    let room = await findRoom(room_name);
+
+    if (!room.started) {
+      let temp1: string[] = [];
+      let temp2: string[] = [];
+
+      for (let i = 0; i < room.team1_users.length; i++) {
+        if (room.team1_users[i] !== user) {
+          temp1.push(room.team1_users[i]);
+        }
+      }
+
+      for (let i = 0; i < room.team2_users.length; i++) {
+        if (room.team2_users[i] !== user) {
+          temp2.push(room.team2_users[i]);
+        }
+      }
+
+      clearTimeout(userResetJobs[user]);
+      delete userResetJobs[user];
+
+      await updateRoom(room_name, { team1_users: temp1, team2_users: temp2 }, true);
+
+      delete activeUsers[id];
+    }
+}
 
 const getRandomLocation = () => {
   return data[Math.floor(Math.random() * data.length)];
@@ -279,6 +309,10 @@ io.on("connection", (socket: any) => {
 
           activeUsers[socket.id] = { room: req.room, user: req.user };
 
+          userResetJobs[req.user] = setTimeout(() => {
+            removeUser(req.room, req.user, socket.id)
+          }, 1000*60*5)
+
           let team1_users = room.team1_users;
 
           team1_users.push(req.user);
@@ -365,6 +399,15 @@ io.on("connection", (socket: any) => {
               clearTimeout(roomResetJobs[req.room])
               delete roomResetJobs[req.room]
             }, 1000*60*60) //rooms reset after an hour
+            
+            for (var k in room.team1_users){
+              clearTimeout(userResetJobs[k])
+              delete userResetJobs[k]
+            }
+            for (var k in room.team2_users){
+              clearTimeout(userResetJobs[k])
+              delete userResetJobs[k]
+            }
 
             io.to(req.room).emit("new_round", {
               location: location,
@@ -535,6 +578,9 @@ io.on("connection", (socket: any) => {
             temp2.push(room.team2_users[i]);
           }
         }
+
+        clearTimeout(userResetJobs[user]);
+        delete userResetJobs[user];
 
         await updateRoom(room_name, { team1_users: temp1, team2_users: temp2 }, true);
 
