@@ -42,7 +42,7 @@ const Room = () => {
     const toast = useToast()
 
     const eventListener = useCallback(
-        (event: any) => {                              
+        () => {                              
           socket.disconnect()          
         },
         [socket]
