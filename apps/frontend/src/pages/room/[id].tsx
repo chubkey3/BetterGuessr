@@ -43,7 +43,13 @@ const Room = () => {
 
     const eventListener = useCallback(
         () => {                              
-          socket.disconnect()          
+          socket.disconnect()         
+           toast({
+               title: 'Kicked',
+               description: 'You were kicked for being inactive. Reload the page to rejoin.',
+               status: "error",
+               duration: null
+           })
         },
         [socket]
     );
