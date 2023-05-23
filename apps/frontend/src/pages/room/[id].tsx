@@ -6,7 +6,7 @@ import StreetView from "../StreetView";
 import GuessMap from '../GuessMap'
 import styles from "@/styles/Home.module.css";
 import Head from "next/head";
-import { Flex, Input, Text, useToast } from "@chakra-ui/react";
+import { Flex, Input, Switch, Tag, TagLabel, Text, useToast } from "@chakra-ui/react";
 import TextBox from "@/components/TextBox";
 import Image from "next/image";
 import ThemeButton from "@/components/ThemeButton";
@@ -38,6 +38,7 @@ const Room = () => {
     const [user, setUser] = useState<string>()
     const [userInput, setUserInput] = useState<string>("")
     const [roundEnd, setRoundEnd] = useState<boolean>(false)
+    const [clueMode, toggleClueMode] = useState<string>("false")
 
     const toast = useToast()
 
@@ -249,6 +250,10 @@ const Room = () => {
                             <Text color={(username === user) ? 'lime' : 'white'} key={username}>{username}</Text>
                         ))}
                     </Flex>
+                </Flex>
+                <Flex justifyContent={'center'} alignItems={'center'} flexDir={'column'}>
+                    <Text color={'white'} mb={3}>Clue Mode<Tag colorScheme={'red'} size={'xs'} ml={0.5} mr={3} p={0.5}><TagLabel fontSize={'2xs'}>NEW</TagLabel></Tag></Text>
+                    <Switch value={clueMode} onChange={(e) => toggleClueMode(e.target.value)}/>
                 </Flex>
                 <Flex w={'50vw'} maxW={'450px'} justifyContent={'space-between'}>
                     <ThemeButton callback={switchTeams}>Switch Team</ThemeButton>
