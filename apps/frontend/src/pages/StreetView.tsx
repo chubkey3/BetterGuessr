@@ -43,7 +43,7 @@ function MyComponent({ center }: Props) {
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: "AIzaSyAa8AwVw9QKRS5AyGTih-iqcXgJ0ImcJ7o",
+    googleMapsApiKey: "",
   });
 
   const [map, setMap] = useState<google.maps.Map | null>(null);
