@@ -64,7 +64,7 @@ function GuessMap({ setParentMarkers, socket, user, room }: Props) {
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: "AIzaSyAa8AwVw9QKRS5AyGTih-iqcXgJ0ImcJ7o",
+    googleMapsApiKey: "",
   });
 
   const onLoad = useCallback(function callback(map: google.maps.Map) {
